@@ -71,6 +71,7 @@ namespace Voxell.GPUVectorGraphics.Triangulation
           ComputeCubic(p0, p01, p012, p0123, ref vertexStart, ref vertexSlice, ref coordsStart, ref coordsSlice, 1);
           ComputeCubic(p0123, p123, p23, p3, ref vertexStart, ref vertexSlice, ref coordsStart, ref coordsSlice, 0);
         }
+        return;
       }
 
       if (recursiveType == 1) flip = !flip;

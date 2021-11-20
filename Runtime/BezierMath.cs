@@ -21,7 +21,7 @@ namespace Voxell.GPUVectorGraphics
       float dot12 = math.dot(p1, p2);
       float denominator = dot00 * dot11 - dot01 * dot01;
 
-      // triangle is zero-area.
+      // triangle has zero-area.
       // treat query point as not being inside.
       if (denominator == 0.0f) return false;
 
