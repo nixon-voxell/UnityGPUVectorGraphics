@@ -40,7 +40,7 @@ namespace Voxell.GPUVectorGraphics
           coords = Quadratic(d3, ref flip);
           break;
 
-        default: break;
+        default: return;
       }
 
       // recursive computation
@@ -72,10 +72,10 @@ namespace Voxell.GPUVectorGraphics
       if (recursiveType == 1) flip = !flip;
       if (flip)
       {
-        coords[0][0] = -coords[0][0]; coords[0][1] = -coords[0][1];
-        coords[1][0] = -coords[1][0]; coords[1][1] = -coords[1][1];
-        coords[2][0] = -coords[2][0]; coords[2][1] = -coords[2][1];
-        coords[3][0] = -coords[3][0]; coords[3][1] = -coords[3][1];
+        coords[0].xy = -coords[0].xy;
+        coords[1].xy = -coords[1].xy;
+        coords[2].xy = -coords[2].xy;
+        coords[3].xy = -coords[3].xy;
       }
 
       // triangulate
