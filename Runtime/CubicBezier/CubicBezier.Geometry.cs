@@ -2,7 +2,7 @@ using UnityEngine;
 using Unity.Mathematics;
 using Unity.Collections;
 
-namespace Voxell.GPUVectorGraphics.Triangulation
+namespace Voxell.GPUVectorGraphics
 {
   public static partial class CubicBezier
   {
@@ -20,32 +20,27 @@ namespace Voxell.GPUVectorGraphics.Triangulation
       int errorLoop = -1;
       float splitParam = 0.0f;
       CurveType curveType = ClassifyCurve(p0, p1, p2, p3, out d0, out d1, out d2, out d3);
+      Debug.Log(curveType);
 
       switch (curveType)
       {
         case CurveType.SERPENTINE:
-          Debug.Log("Serpentine");
           coords = Serpentine(d1, d2, d3, ref flip);
           break;
 
         case CurveType.LOOP:
-          Debug.Log("Loop");
           coords = Loop(d1, d2, d3, ref flip, ref errorLoop, ref splitParam, recursiveType);
           break;
 
         case CurveType.CUSP:
-          Debug.Log("Cusp");
           coords = Cusp(d1, d2, d3);
           break;
 
         case CurveType.QUADRATIC:
-          Debug.Log("Quadratic");
           coords = Quadratic(d3, ref flip);
           break;
 
-        case CurveType.UNKNOWN:
-          Debug.Log("Unknown");
-          break;
+        default: break;
       }
 
       // recursive computation
@@ -75,7 +70,13 @@ namespace Voxell.GPUVectorGraphics.Triangulation
       }
 
       if (recursiveType == 1) flip = !flip;
-      if (flip) coords = -coords;
+      if (flip)
+      {
+        coords[0][0] = -coords[0][0]; coords[0][1] = -coords[0][1];
+        coords[1][0] = -coords[1][0]; coords[1][1] = -coords[1][1];
+        coords[2][0] = -coords[2][0]; coords[2][1] = -coords[2][1];
+        coords[3][0] = -coords[3][0]; coords[3][1] = -coords[3][1];
+      }
 
       // triangulate
       Triangulate(

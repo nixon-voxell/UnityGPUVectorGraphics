@@ -1,7 +1,7 @@
 using Unity.Mathematics;
 using Unity.Collections;
 
-namespace Voxell.GPUVectorGraphics.Triangulation
+namespace Voxell.GPUVectorGraphics
 {
   public static partial class CubicBezier
   {

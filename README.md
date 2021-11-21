@@ -13,7 +13,7 @@ This is a GPU accelerated vector graphics library built specifially for the Unit
 This package depends on the [UnityUtil](https://github.com/voxell-tech/UnityUtil) package.
 
 1. Clone the [UnityUtil](https://github.com/voxell-tech/UnityUtil) repository into your `Packages` folder.
-2. Clone this repository into your project's `Packages` folder.
+2. Clone this repository into your `Packages` folder.
 3. And you are ready to go!
 
 ## References
