@@ -48,4 +48,6 @@ See [license file](./LICENSE) for details.
 
 1. [Gliss (GitHub)](https://github.com/mdk/gliss)
 2. [GPU Curve Rendering (GitHub)](https://github.com/azer89/GPU_Curve_Rendering)
-3. [Resolution Independent Curve Rendering using Programmable Grpahics Hardware](https://www.microsoft.com/en-us/research/wp-content/uploads/2005/01/p1000-loop.pdf)
+3. [Beny_Core (GitHub)](https://github.com/Reavenk/Berny_Core)
+4. [Resolution Independent Curve Rendering using Programmable Grpahics Hardware](https://www.microsoft.com/en-us/research/wp-content/uploads/2005/01/p1000-loop.pdf)
+5. [NVIDIA GPU Gem 3 - Rendering Vector Art on the GPU](https://developer.nvidia.com/gpugems/gpugems3/part-iv-image-effects/chapter-25-rendering-vector-art-gpu)

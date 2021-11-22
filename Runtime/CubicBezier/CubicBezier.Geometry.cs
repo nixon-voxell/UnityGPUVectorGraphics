@@ -17,10 +17,9 @@ namespace Voxell.GPUVectorGraphics
       float3x4 coords = new float3x4();
       bool flip = false;
       // artifact on loop
-      int errorLoop = -1;
+      int loopArtifact = -1;
       float splitParam = 0.0f;
       CurveType curveType = ClassifyCurve(p0, p1, p2, p3, out d0, out d1, out d2, out d3);
-      Debug.Log(curveType);
 
       switch (curveType)
       {
@@ -29,7 +28,7 @@ namespace Voxell.GPUVectorGraphics
           break;
 
         case CurveType.LOOP:
-          coords = Loop(d1, d2, d3, ref flip, ref errorLoop, ref splitParam, recursiveType);
+          coords = Loop(d1, d2, d3, ref flip, ref loopArtifact, ref splitParam, recursiveType);
           break;
 
         case CurveType.CUSP:
@@ -44,7 +43,7 @@ namespace Voxell.GPUVectorGraphics
       }
 
       // recursive computation
-      if(errorLoop != -1 && recursiveType == -1)
+      if(loopArtifact != -1 && recursiveType == -1)
       {
         float2 p01 = (p1 - p0) * splitParam + p0;
         float2 p12 = (p2 - p1) * splitParam + p1;
@@ -55,14 +54,12 @@ namespace Voxell.GPUVectorGraphics
 
         float2 p0123 = (p123 - p012) * splitParam + p012;
 
-        if(errorLoop == 1) // flip second
+        if(loopArtifact == 1) // flip second
         {
-          Debug.Log("flip second");
           ComputeCubic(p0, p01, p012, p0123, ref vertexStart, ref vertexSlice, ref coordsStart, ref coordsSlice, 0);
           ComputeCubic(p0123, p123, p23, p3, ref vertexStart, ref vertexSlice, ref coordsStart, ref coordsSlice, 1);
-        } else if(errorLoop == 2) // flip first
+        } else if(loopArtifact == 2) // flip first
         {
-          Debug.Log("flip first");
           ComputeCubic(p0, p01, p012, p0123, ref vertexStart, ref vertexSlice, ref coordsStart, ref coordsSlice, 1);
           ComputeCubic(p0123, p123, p23, p3, ref vertexStart, ref vertexSlice, ref coordsStart, ref coordsSlice, 0);
         }

@@ -93,7 +93,7 @@ namespace Voxell.GPUVectorGraphics
 
     public static float3x4 Loop(
       float d1, float d2, float d3, ref bool flip,
-      ref int errorLoop, ref float splitParam, int recursiveType
+      ref int loopArtifact, ref float splitParam, int recursiveType
     )
     {
       float t1 = math.sqrt(4.0f * d1 * d3 - 3.0f * d2 * d2);
@@ -108,13 +108,13 @@ namespace Voxell.GPUVectorGraphics
       float qm = ms / mt;
       if (0.0f < ql && ql < 1.0f) 
       {
-        errorLoop = 1;
+        loopArtifact = 1;
         splitParam = ql;
       }
 
       if (0.0f < qm && qm < 1.0f) 
       {
-        errorLoop = 2;
+        loopArtifact = 2;
         splitParam = qm;
       }
 

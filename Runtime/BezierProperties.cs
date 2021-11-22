@@ -4,48 +4,39 @@ using Unity.Mathematics;
 
 namespace Voxell.GPUVectorGraphics
 {
-  /// <summary>The path corner types, for joining path segments together.</summary>
-  public enum PathCorner
-  {
-    /// <summary>A tipped corner with a sharp edge.</summary>
-    Tipped,
-
-    /// <summary>A rounded corner.</summary>
+  /// <summary>
+  /// The various ways corners in an SVG file can be formed.
+  /// </summary>
+  public enum Corner
+  { 
+    /// <summary>A half circle to round the end.</summary>
     Round,
 
-    /// <summary>A beveled corner.</summary>
-    Beveled
+    /// <summary>A flat connection.</summary>
+    Bevel,
+
+    /// <summary>Extrapolate sides with straight lines to where they collide.</summary>
+    Miter,
+
+    /// <summary>Extrapolate sides continuing their curve to where they collide.</summary>
+    Arc
   }
 
-  /// <summary>The path ending types.</summary>
-  public enum PathEnding
-  {
-    /// <summary>A square path ending.</summary>
-    Chop,
+  /// <summary>The style of an unconnected edge's end.</summary>
+  public enum Cap
+  { 
+    /// <summary>Stop instantly.</summary>
+    Butt,
 
-    /// <summary>A square path ending with a small extrusion.</summary>
-    Square,
+    /// <summary>Round it out with a half circle.</summary>
+    Round,
 
-    /// <summary>A rounded path ending.</summary>
-    Round
-  }
-
-  /// <summary>The fill mode types.</summary>
-  public enum FillMode
-  {
-    /// <summary>
-    /// Determines the "insideness" of the shape by evaluating the direction of the edges crossed.
-    /// </summary>
-    NonZero,
-
-    /// <summary>
-    /// Determines the "insideness" of the shape by counting the number of edges crossed.
-    /// </summary>
-    OddEven
+    /// <summary>Add an additional half square, based off the width of the edge.</summary>
+    Square
   }
 
   [Serializable]
-  public struct BezierSegment
+  public struct CubicSegment
   {
     [Tooltip("Origin point of the segment.")]
     public float2 p0;
@@ -59,7 +50,7 @@ namespace Voxell.GPUVectorGraphics
     [Tooltip("Ending point of the segment.")]
     public float2 p3;
 
-    public BezierSegment(float2 p0, float2 p1, float2 p2, float2 p3)
+    public CubicSegment(float2 p0, float2 p1, float2 p2, float2 p3)
     {
       this.p0 = p0;
       this.p1 = p1;
@@ -69,7 +60,27 @@ namespace Voxell.GPUVectorGraphics
   }
 
   [Serializable]
-  public struct BezierPathSegment
+  public struct QuadraticSegment
+  {
+    [Tooltip("Origin point of the segment.")]
+    public float2 p0;
+
+    [Tooltip("First control point of the segment.")]
+    public float2 p1;
+
+    [Tooltip("Ending point of the segment.")]
+    public float2 p2;
+
+    public QuadraticSegment(float2 p0, float2 p1, float2 p2)
+    {
+      this.p0 = p0;
+      this.p1 = p1;
+      this.p2 = p2;
+    }
+  }
+
+  [Serializable]
+  public struct CubicPathSegment
   {
     [Tooltip("Origin point of the segment.")]
     public float2 p0;
@@ -80,7 +91,7 @@ namespace Voxell.GPUVectorGraphics
     [Tooltip("Second control point of the segment.")]
     public float2 p2;
 
-    public BezierPathSegment(float2 p0, float2 p1, float2 p2)
+    public CubicPathSegment(float2 p0, float2 p1, float2 p2)
     {
       this.p0 = p0;
       this.p1 = p1;
@@ -89,15 +100,38 @@ namespace Voxell.GPUVectorGraphics
   }
 
   [Serializable]
-  public struct BezierContour
+  public struct QuadraticPathSegment
   {
-    [Tooltip("An array of every path segments on the contour. " +
-    "Closed paths should not add a dedicated closing segment. It is implied by the 'closed' property.")]
-    public BezierPathSegment[] segments;
+    [Tooltip("Origin point of the segment.")]
+    public float2 p0;
 
-    [Tooltip("A boolean indicating if the contour should be closed. " +
-    "When set to true, closed path will connect the last path segment to the first path segment, by using the " +
-    "last path segment's P1 and P2 as control points.")]
+    [Tooltip("First control point of the segment.")]
+    public float2 p1;
+
+    public QuadraticPathSegment(float2 p0, float2 p1)
+    {
+      this.p0 = p0;
+      this.p1 = p1;
+    }
+  }
+
+  [Serializable]
+  public struct CubicContour
+  {
+    [Tooltip("An array of every cubic path segments on the contour.")]
+    public CubicPathSegment[] segments;
+
+    [Tooltip("A closed loop contour.")]
+    public bool closed;
+  }
+
+  [Serializable]
+  public struct QuadraticContour
+  {
+    [Tooltip("An array of every quadratic path segments on the contour.")]
+    public QuadraticPathSegment[] segments;
+
+    [Tooltip("A closed loop contour.")]
     public bool closed;
   }
 
@@ -105,12 +139,12 @@ namespace Voxell.GPUVectorGraphics
   public struct PathProperties
   {
     [Tooltip("How the beginning of the path should be displayed.")]
-    public PathEnding head;
+    public Cap head;
 
     [Tooltip("How the end of the path should be displayed.")]
-    public PathEnding tail;
+    public Cap tail;
 
     [Tooltip("How the corners of the path should be displayed.")]
-    public PathCorner corners;
+    public Corner corner;
   }
 }
