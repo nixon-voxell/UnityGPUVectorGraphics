@@ -70,7 +70,7 @@ namespace Voxell.GPUVectorGraphics.Font
         _tableMap.Add(table.tag, table);
       }
 
-      // head
+      #region Head
       if (!_tableMap.TryGetValue(Head.TagName, out table))
       {
         Debug.LogError("Font file does not have a header!");
@@ -82,8 +82,9 @@ namespace Voxell.GPUVectorGraphics.Font
       head.Read(fontReader);
       unitsPerEm = (float)head.unitsPerEm;
       offsetByteWidth = head.OffsetByteWidth;
+      #endregion
 
-      // maxp
+      #region Maxp
       if (!_tableMap.TryGetValue(Maxp.TagName, out table))
       {
         Debug.LogError("Font file does not have maxp data!");
@@ -94,8 +95,9 @@ namespace Voxell.GPUVectorGraphics.Font
       Maxp maxP = new Maxp();
       maxP.Read(fontReader);
       glyphCount = maxP.numGlyphs;
+      #endregion
 
-      // loca
+      #region Loca
       if (!_tableMap.TryGetValue(Loca.TagName, out table))
       {
         Debug.LogError("Font file does not have loca data!");
@@ -105,15 +107,15 @@ namespace Voxell.GPUVectorGraphics.Font
       fontReader.SetPosition(table.offset);
       Loca loca = new Loca();
       loca.Read(fontReader, glyphCount, offsetByteWidth == 4);
+      #endregion
 
-      // glyf
+      #region Glyf
       if (!_tableMap.TryGetValue(Glyf.TagName, out table))
       {
         Debug.LogError("Font file does not have glyf data!");
         return;
       }
 
-      // keep a list of what's a composite, and we'll construct those when we're done.
       glyphs = new Glyph[glyphCount];
       fontName = FileUtilx.GetFilename(filePath).Split('.')[0];
       for (int g=0; g < glyphCount; g++)
@@ -176,8 +178,8 @@ namespace Voxell.GPUVectorGraphics.Font
           }
           glyphs[g].isComplex = false;
         }
-
       }
+      #endregion
 
       fontReader.Close();
     }
