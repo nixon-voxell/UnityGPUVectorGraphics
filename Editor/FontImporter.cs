@@ -181,6 +181,7 @@ namespace Voxell.GPUVectorGraphics.Font
       }
       #endregion
 
+      _tableMap.Clear();
       fontReader.Close();
     }
   }
