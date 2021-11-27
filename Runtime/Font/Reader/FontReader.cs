@@ -60,7 +60,7 @@ namespace Voxell.GPUVectorGraphics.Font
     /// </summary>
     /// <param name="pos">The new read position.</param>
     /// <returns>If true, the read position was successfully set. Else, false.</returns>
-    public abstract bool SetPosition(long pos, SeekOrigin seekOrigin);
+    public abstract bool SetPosition(long pos, SeekOrigin seekOrigin = SeekOrigin.Begin);
 
     /// <summary>
     /// Read an array of bytes, starting from the read position.

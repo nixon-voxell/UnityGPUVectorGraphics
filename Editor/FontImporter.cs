@@ -31,7 +31,9 @@ namespace Voxell.GPUVectorGraphics.Font
 
     private Dictionary<string, Table> _tableMap;
 
-    [Tooltip("The integer value for a unit distance in the font."), InspectOnly]
+    // we convert the integer into a float for easier division operation purposes
+    // we want a float division instead of a integer division (which looses all the floating point data)
+    [Tooltip("The *integer value for a unit distance in the font."), InspectOnly]
     public float unitsPerEm = 0;
     [Tooltip("Offset width, relevant when certain peices of data in the file."), InspectOnly]
     public int offsetByteWidth = 0;
@@ -40,8 +42,6 @@ namespace Voxell.GPUVectorGraphics.Font
 
     [Tooltip("Name of the type face."), InspectOnly]
     public string fontName;
-    [Tooltip("Bezier contour for each character."), HideInInspector]
-    public Glyph[] glyphs;
 
     public override void OnImportAsset(AssetImportContext ctx)
     {
@@ -70,6 +70,8 @@ namespace Voxell.GPUVectorGraphics.Font
         _tableMap.Add(table.tag, table);
       }
 
+      // head will tell us all table offset information
+      ////////////////////////////////////////////////////////////////////////////////
       #region Head
       if (!_tableMap.TryGetValue(Head.TagName, out table))
       {
@@ -84,6 +86,8 @@ namespace Voxell.GPUVectorGraphics.Font
       offsetByteWidth = head.OffsetByteWidth;
       #endregion
 
+      // maxp will tell us how many glyphs there are in the file
+      ////////////////////////////////////////////////////////////////////////////////
       #region Maxp
       if (!_tableMap.TryGetValue(Maxp.TagName, out table))
       {
@@ -97,6 +101,8 @@ namespace Voxell.GPUVectorGraphics.Font
       glyphCount = maxP.numGlyphs;
       #endregion
 
+      // loca knows offsets of glyphs in the glyf table
+      ////////////////////////////////////////////////////////////////////////////////
       #region Loca
       if (!_tableMap.TryGetValue(Loca.TagName, out table))
       {
@@ -109,6 +115,8 @@ namespace Voxell.GPUVectorGraphics.Font
       loca.Read(fontReader, glyphCount, offsetByteWidth == 4);
       #endregion
 
+      // glyf provides contour data
+      ////////////////////////////////////////////////////////////////////////////////
       #region Glyf
       if (!_tableMap.TryGetValue(Glyf.TagName, out table))
       {
@@ -116,7 +124,7 @@ namespace Voxell.GPUVectorGraphics.Font
         return;
       }
 
-      glyphs = new Glyph[glyphCount];
+      Glyph[] glyphs = new Glyph[glyphCount];
       fontName = FileUtilx.GetFilename(filePath).Split('.')[0];
       for (int g=0; g < glyphCount; g++)
       {
@@ -160,20 +168,43 @@ namespace Voxell.GPUVectorGraphics.Font
             currContourEnd = glyf.endPtsOfCountours[c];
             int segmentCount = currContourEnd - prevContourEnd;
 
-            float2[] points = new float2[segmentCount];
-            bool[] isControls = new bool[segmentCount];
-            for (int s=0; s < segmentCount; s++)
-            {
-              int segmentIdx = prevContourEnd + s;
+            // initialize with the minimum capacity needed (if there are no consecutive points)
+            List<bool> isControls = new List<bool>(segmentCount);
+            List<float2> points = new List<float2>(segmentCount);
+            int segmentIdx = prevContourEnd;
 
-              points[s] = new float2(
+            isControls.Add((glyf.simpflags[segmentIdx] & Glyf.ON_CURVE_POINT) == 0);
+            points.Add(new float2(
+              (float)glyf.xCoordinates[segmentIdx], (float)glyf.yCoordinates[segmentIdx]
+            ) / unitsPerEm);
+
+            for (int s=1; s < segmentCount; s++, segmentIdx++)
+            {
+              bool isControl = (glyf.simpflags[segmentIdx] & Glyf.ON_CURVE_POINT) == 0;
+              float2 point = new float2(
                 (float)glyf.xCoordinates[segmentIdx], (float)glyf.yCoordinates[segmentIdx]
               ) / unitsPerEm;
 
-              isControls[s] = (glyf.simpflags[segmentIdx] & Glyf.ON_CURVE_POINT) == 0;
+              // if 2 control points are next to each other, there's an implied
+              // point in between them at their average
+              if (isControl && isControls[s-1])
+              {
+                // the easiest way to handle that is to make a representation
+                // where we manually inserted them to define them explicitly
+                float2 avgPoint = (points[s-1] + point) * 0.5f;
+
+                isControls.Add(false);
+                points.Add(avgPoint);
+              }
+
+              isControls.Add(isControl);
+              points.Add(point);
             }
-            glyphs[g].glyphContours[c].points = points;
-            glyphs[g].glyphContours[c].isControls = isControls;
+
+            // convert list to array for performance
+            glyphs[g].glyphContours[c].points = points.ToArray();
+            glyphs[g].maxRect = new float2(glyf.xMax, glyf.yMax)/unitsPerEm;
+            glyphs[g].minRect = new float2(glyf.xMin, glyf.yMin)/unitsPerEm;
             prevContourEnd = currContourEnd;
           }
           glyphs[g].isComplex = false;
@@ -181,8 +212,43 @@ namespace Voxell.GPUVectorGraphics.Font
       }
       #endregion
 
+      // cmap tells us the mapping between character codes and glyph indices
+      // used throughout the font file
+      ////////////////////////////////////////////////////////////////////////////////
+      #region cmap
+      if (!_tableMap.TryGetValue(CMap.TagName, out table))
+      {
+        Debug.LogError("Font file does not have cmap data!");
+        return;
+      }
+
+      fontReader.SetPosition(table.offset);
+      CMap cMap = new CMap();
+      cMap.Read(fontReader, table.offset);
+
+      Dictionary<uint, uint> characterRemap = null;
+      foreach (CMap.CharacterConversionMap ccm in cMap.EnumCharacterMaps())
+      {
+        characterRemap = ccm.MapCodeToIndex(fontReader);
+        break;
+      }
+
+      int keyCount =  characterRemap.Keys.Count;
+      int[] charMap = new int[keyCount];
+      foreach (KeyValuePair<uint, uint> kvp in characterRemap)
+      {
+        int code = (int)kvp.Key;
+        int idx = (int)kvp.Value;
+        charMap[code] = idx;
+      }
+      #endregion
+
       _tableMap.Clear();
       fontReader.Close();
+
+      FontCurve fontCurve = ScriptableObject.CreateInstance<FontCurve>();
+      fontCurve.Initialize(glyphs, charMap);
+      ctx.AddObjectToAsset("FontCurve", fontCurve);
     }
   }
 }

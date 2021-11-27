@@ -4,8 +4,9 @@
 
 - Bezier Properties for describing a shape made up of bezier curves.
 - Open Font lightweight importer:
-  - native support
-  - store data as Glyphs (with just points with each being defined as either a control point or an actual point)
+  - Native support.
+  - Store data as glyphs. Each glyph will have a glyph contour containing a sequence of points in the order of p0-ctrl0-p1-ctrl1.
+  - Character maps that maps each character to a glyph index.
 
 ### Bug Fixes
 

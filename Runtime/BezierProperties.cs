@@ -38,16 +38,16 @@ namespace Voxell.GPUVectorGraphics
   [Serializable]
   public struct CubicSegment
   {
-    [Tooltip("Origin point of the segment.")]
+    /// <summary>Origin point of the segment.</summary>
     public float2 p0;
 
-    [Tooltip("First control point of the segment.")]
+    /// <summary>First control point of the segment.</summary>
     public float2 p1;
 
-    [Tooltip("Second control point of the segment.")]
+    /// <summary>Second control point of the segment.</summary>
     public float2 p2;
 
-    [Tooltip("Ending point of the segment.")]
+    /// <summary>Ending point of the segment.</summary>
     public float2 p3;
 
     public CubicSegment(float2 p0, float2 p1, float2 p2, float2 p3)
@@ -62,13 +62,13 @@ namespace Voxell.GPUVectorGraphics
   [Serializable]
   public struct QuadraticSegment
   {
-    [Tooltip("Origin point of the segment.")]
+    /// <summary>Origin point of the segment.</summary>
     public float2 p0;
 
-    [Tooltip("First control point of the segment.")]
+    /// <summary>First control point of the segment.</summary>
     public float2 p1;
 
-    [Tooltip("Ending point of the segment.")]
+    /// <summary>Ending point of the segment.</summary>
     public float2 p2;
 
     public QuadraticSegment(float2 p0, float2 p1, float2 p2)
@@ -82,13 +82,13 @@ namespace Voxell.GPUVectorGraphics
   [Serializable]
   public struct CubicPathSegment
   {
-    [Tooltip("Origin point of the segment.")]
+    /// <summary>Origin point of the segment.</summary>
     public float2 p0;
 
-    [Tooltip("First control point of the segment.")]
+    /// <summary>First control point of the segment.</summary>
     public float2 p1;
 
-    [Tooltip("Second control point of the segment.")]
+    /// <summary>Second control point of the segment.</summary>
     public float2 p2;
 
     public CubicPathSegment(float2 p0, float2 p1, float2 p2)
@@ -102,10 +102,10 @@ namespace Voxell.GPUVectorGraphics
   [Serializable]
   public struct QuadraticPathSegment
   {
-    [Tooltip("Origin point of the segment.")]
+    /// <summary>Origin point of the segment.</summary>
     public float2 p0;
 
-    [Tooltip("First control point of the segment.")]
+    /// <summary>First control point of the segment.</summary>
     public float2 p1;
 
     public QuadraticPathSegment(float2 p0, float2 p1)
@@ -118,33 +118,33 @@ namespace Voxell.GPUVectorGraphics
   [Serializable]
   public struct CubicContour
   {
-    [Tooltip("An array of every cubic path segments on the contour.")]
+    /// <summary>An array of every cubic path segments on the contour.</summary>
     public CubicPathSegment[] segments;
 
-    [Tooltip("A closed loop contour.")]
+    /// <summary>A closed loop contour.</summary>
     public bool closed;
   }
 
   [Serializable]
   public struct QuadraticContour
   {
-    [Tooltip("An array of every quadratic path segments on the contour.")]
+    /// <summary>An array of every quadratic path segments on the contour.</summary>
     public QuadraticPathSegment[] segments;
 
-    [Tooltip("A closed loop contour.")]
+    /// <summary>A closed loop contour.</summary>
     public bool closed;
   }
 
   [Serializable]
   public struct PathProperties
   {
-    [Tooltip("How the beginning of the path should be displayed.")]
+    /// <summary>How the beginning of the path should be displayed.</summary>
     public Cap head;
 
-    [Tooltip("How the end of the path should be displayed.")]
+    /// <summary>How the end of the path should be displayed.</summary>
     public Cap tail;
 
-    [Tooltip("How the corners of the path should be displayed.")]
+    /// <summary>How the corners of the path should be displayed.</summary>
     public Corner corner;
   }
 }

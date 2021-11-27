@@ -43,7 +43,7 @@ namespace Voxell.GPUVectorGraphics
       }
 
       // recursive computation
-      if(loopArtifact != -1 && recursiveType == -1)
+      if (loopArtifact != -1 && recursiveType == -1)
       {
         float2 p01 = (p1 - p0) * splitParam + p0;
         float2 p12 = (p2 - p1) * splitParam + p1;
@@ -54,11 +54,11 @@ namespace Voxell.GPUVectorGraphics
 
         float2 p0123 = (p123 - p012) * splitParam + p012;
 
-        if(loopArtifact == 1) // flip second
+        if (loopArtifact == 1) // flip second
         {
           ComputeCubic(p0, p01, p012, p0123, ref vertexStart, ref vertexSlice, ref coordsStart, ref coordsSlice, 0);
           ComputeCubic(p0123, p123, p23, p3, ref vertexStart, ref vertexSlice, ref coordsStart, ref coordsSlice, 1);
-        } else if(loopArtifact == 2) // flip first
+        } else if (loopArtifact == 2) // flip first
         {
           ComputeCubic(p0, p01, p012, p0123, ref vertexStart, ref vertexSlice, ref coordsStart, ref coordsSlice, 1);
           ComputeCubic(p0123, p123, p23, p3, ref vertexStart, ref vertexSlice, ref coordsStart, ref coordsSlice, 0);

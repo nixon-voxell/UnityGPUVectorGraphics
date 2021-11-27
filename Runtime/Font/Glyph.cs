@@ -25,25 +25,23 @@ namespace Voxell.GPUVectorGraphics.Font
     [System.Serializable]
     public struct GlyphContour
     {
-      /// <summary>All points in the glyph.</summary>
+      /// <summary>All points in the contour.</summary>
+      /// <remarks>Points are arranged in the order of p0-ctrl0-p1-ctrl1...</remarks>
       public float2[] points;
-
-      /// <summary>Determine if a point is a control point.</summary>
-      public bool[] isControls;
     }
 
-    [Tooltip("All contours in the glyph.")]
+    /// <summary>All contours in the glyph.</summary>
     public GlyphContour[] glyphContours;
 
-    [Tooltip("Composition of referenes of other glyphs.")]
+    /// <summary>Composition of referenes of other glyphs.</summary>
     public CompositeReference[] compositeReferences;
 
-    [Tooltip("Determines if this glyph is made up of other glyph or a glyph on its own.")]
+    /// <summary>Determines if this glyph is made up of other glyph or a glyph on its own.</summary>
     public bool isComplex;
 
-    [Tooltip("Bottom left of the glyph's bounding box.")]
+    /// <summary>Bottom left of the glyph's bounding box.</summary>
     public float2 minRect;
-    [Tooltip("Top right of the glyph's bounding box.")]
+    /// <summary>Top right of the glyph's bounding box.</summary>
     public float2 maxRect;
   }
 }

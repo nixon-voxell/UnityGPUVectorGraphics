@@ -60,7 +60,7 @@ namespace Voxell.GPUVectorGraphics.Font
           short a1 = r.ReadInt16();
           short a2 = r.ReadInt16();
 
-          if((this.flags & ARGS_ARE_XY_VALUES) != 0)
+          if ((this.flags & ARGS_ARE_XY_VALUES) != 0)
           {
             this.argument1 = a1;
             this.argument2 = a2;
@@ -207,7 +207,7 @@ namespace Voxell.GPUVectorGraphics.Font
           byte flag = this.simpflags[i];
           if ((flag & X_SHORT_VECTOR) != 0)
           {
-            if((flag & X_IS_SAME_OR_POSITIVE_X_SHORT_VECTOR) != 0)
+            if ((flag & X_IS_SAME_OR_POSITIVE_X_SHORT_VECTOR) != 0)
               val += r.ReadUInt8();
             else
               val -= r.ReadUInt8();
