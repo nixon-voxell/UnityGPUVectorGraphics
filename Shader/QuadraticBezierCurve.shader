@@ -9,6 +9,7 @@ Shader "Unlit/Quadratic Bezier"
   {
     Tags { "RenderType"="Opaque" }
     LOD 100
+    Cull Off
 
     Pass
     {
@@ -21,12 +22,12 @@ Shader "Unlit/Quadratic Bezier"
       struct appdata
       {
         float4 vertex : POSITION;
-        float2 uv : TEXCOORD0;
+        float3 uv : TEXCOORD0;
       };
 
       struct v2f
       {
-        float2 uv : TEXCOORD0;
+        float3 uv : TEXCOORD0;
         float4 vertex : SV_POSITION;
       };
 
@@ -43,27 +44,11 @@ Shader "Unlit/Quadratic Bezier"
 
       half4 frag (v2f i) : SV_Target
       {
-        float2 p = i.uv;
-        // chain rule
-        float2 px = ddx(p); float2 py = ddy(p);
+        float3 uv = i.uv;
+        float alpha = (uv.x * uv.x - uv.y) * uv.z;
 
-        float fx = (2*p.x)*px.x - px.y;
-        float fy = (2*p.x)*py.x - py.y;
-
-        // signed distance
-        float sd = (p.x*p.x - p.y)/sqrt(fx*fx + fy*fy);
-        
-        //linear alpha
-        float alpha = 0.5 - sd;
-
-        // inside
-        if (sd + _StrokeThickness > 1 && alpha > 1) _Color.a = 1;
-        // outside
-        else if (sd + _StrokeThickness < 0 || alpha < 0) clip(-1);
-        // near boundary
-        else _Color.a = alpha;
-
-        return saturate(sd + _StrokeThickness) * _Color;
+        clip(alpha);
+        return _Color;
       }
       ENDCG
     }

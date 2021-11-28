@@ -22,16 +22,8 @@ namespace Voxell.GPUVectorGraphics.Font
       public int glyphRef;
     }
 
-    [System.Serializable]
-    public struct GlyphContour
-    {
-      /// <summary>All points in the contour.</summary>
-      /// <remarks>Points are arranged in the order of p0-ctrl0-p1-ctrl1...</remarks>
-      public float2[] points;
-    }
-
     /// <summary>All contours in the glyph.</summary>
-    public GlyphContour[] glyphContours;
+    public QuadraticContour[] contours;
 
     /// <summary>Composition of referenes of other glyphs.</summary>
     public CompositeReference[] compositeReferences;

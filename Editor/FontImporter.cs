@@ -7,7 +7,7 @@ using Voxell.Inspector;
 
 namespace Voxell.GPUVectorGraphics.Font
 {
-  [ScriptedImporter(0,  new[] { "ttfvector", "otfVector" }, new[] { "ttf", "otf" })]
+  [ScriptedImporter(1,  new[] { "ttfvector", "otfVector" }, new[] { "ttf", "otf" })]
   public class FontImporter : ScriptedImporter
   {
     /// <summary>Format of the font.</summary>
@@ -159,53 +159,72 @@ namespace Voxell.GPUVectorGraphics.Font
         } else
         {
           // simple
-          glyphs[g].glyphContours = new Glyph.GlyphContour[contourCount];
-          int prevContourEnd = 0;
-          int currContourEnd;
+          glyphs[g].contours = new QuadraticContour[contourCount];
+          int pointIdx = 0;
 
           for (int c=0; c < contourCount; c++)
           {
-            currContourEnd = glyf.endPtsOfCountours[c];
-            int segmentCount = currContourEnd - prevContourEnd;
+            int endPoint = glyf.endPtsOfCountours[c]+1;
+            int pointCount = endPoint - pointIdx;
 
             // initialize with the minimum capacity needed (if there are no consecutive points)
-            List<bool> isControls = new List<bool>(segmentCount);
-            List<float2> points = new List<float2>(segmentCount);
-            int segmentIdx = prevContourEnd;
+            List<float2> points = new List<float2>(pointCount);
+            List<bool> isControls = new List<bool>(pointCount);
 
-            isControls.Add((glyf.simpflags[segmentIdx] & Glyf.ON_CURVE_POINT) == 0);
-            points.Add(new float2(
-              (float)glyf.xCoordinates[segmentIdx], (float)glyf.yCoordinates[segmentIdx]
-            ) / unitsPerEm);
-
-            for (int s=1; s < segmentCount; s++, segmentIdx++)
+            // populate lists with original data
+            for (; pointIdx < endPoint; pointIdx++)
             {
-              bool isControl = (glyf.simpflags[segmentIdx] & Glyf.ON_CURVE_POINT) == 0;
+              isControls.Add((glyf.simpflags[pointIdx] & Glyf.ON_CURVE_POINT) == 0);
               float2 point = new float2(
-                (float)glyf.xCoordinates[segmentIdx], (float)glyf.yCoordinates[segmentIdx]
+                (float)glyf.xCoordinates[pointIdx], (float)glyf.yCoordinates[pointIdx]
               ) / unitsPerEm;
 
-              // if 2 control points are next to each other, there's an implied
-              // point in between them at their average
-              if (isControl && isControls[s-1])
-              {
-                // the easiest way to handle that is to make a representation
-                // where we manually inserted them to define them explicitly
-                float2 avgPoint = (points[s-1] + point) * 0.5f;
-
-                isControls.Add(false);
-                points.Add(avgPoint);
-              }
-
-              isControls.Add(isControl);
               points.Add(point);
             }
 
-            // convert list to array for performance
-            glyphs[g].glyphContours[c].points = points.ToArray();
+            // insert missing vertex points and control points
+            for (int p=0; p < points.Count; p++)
+            {
+              // reverts back to 0 when we reach the end of the array
+              int nextIdx = (p + 1) % points.Count;
+
+              if (isControls[p] && isControls[nextIdx])
+              {
+                // If 2 control points are next to each other, there's an implied
+                // point in between them at their average.
+                // We add them explicitly for better parallelization in the future.
+
+                // average vector between previous point and current point
+                float2 avgPoint = (points[p] + points[nextIdx]) * 0.5f;
+                points.Insert(nextIdx, avgPoint);
+                isControls.Insert(nextIdx, false);
+              } else if (!isControls[p] && !isControls[nextIdx])
+              {
+                // If 2 vertex points are next to each other, it represents that
+                // the segment is a line instead of a curve.
+                // We add a dummy control point which has the exact same location
+                // as the current vertex point to indicate that it is a line.
+
+                points.Insert(nextIdx, points[p]);
+                isControls.Insert(nextIdx, true);
+              }
+            }
+
+            // convert point list into segment array
+            int segmentCount = points.Count/2;
+            QuadraticPathSegment[] segments = new QuadraticPathSegment[segmentCount];
+            for (int s=0; s < segmentCount; s++)
+            {
+              int segmentIdx = s*2;
+              segments[s].p0 = points[segmentIdx];
+              segments[s].p1 = points[segmentIdx+1];
+            }
+
+            // store to glyph struct
+            glyphs[g].contours[c].segments = segments;
+            glyphs[g].contours[c].closed = true;
             glyphs[g].maxRect = new float2(glyf.xMax, glyf.yMax)/unitsPerEm;
             glyphs[g].minRect = new float2(glyf.xMin, glyf.yMin)/unitsPerEm;
-            prevContourEnd = currContourEnd;
           }
           glyphs[g].isComplex = false;
         }

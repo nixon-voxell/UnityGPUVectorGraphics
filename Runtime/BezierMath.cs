@@ -21,8 +21,8 @@ namespace Voxell.GPUVectorGraphics
       float dot12 = math.dot(p1, p2);
       float denominator = dot00 * dot11 - dot01 * dot01;
 
-      // triangle has zero-area.
-      // treat query point as not being inside.
+      // triangle has zero-area
+      // treat query point as not being inside
       if (denominator == 0.0f) return false;
 
       // compute
@@ -43,31 +43,6 @@ namespace Voxell.GPUVectorGraphics
     {
       float crossProduct = (p2.y - p1.y) * (p3.x - p2.x) - (p3.y - p2.y) * (p2.x - p1.x);
       return (crossProduct < 0.0f) ? -1 : ((crossProduct > 0.0f) ? 1 : 0);
-    }
-
-    /// <summary>Forces both values to be within the range of -1 and 1.</summary>
-    internal static void NormalizeTwo(ref float a, ref float b)
-    {
-      float max = math.abs(a);
-      if (math.abs(b) > max) max = math.abs(b);
-
-      a /= max;
-      b /= max;
-    }
-
-    internal static void NormalizeCoords (ref float2 p0, ref float2 p1, ref float2 p2, ref float2 p3)
-    {
-      float maxx = MaxOutOfFour(p0.x, p1.x, p2.x, p3.x);
-      float minx = MinOutOfFour(p0.x, p1.x, p2.x, p3.x);
-      float maxy = MaxOutOfFour(p0.y, p1.y, p2.y, p3.y);
-      float miny = MinOutOfFour(p0.y, p1.y, p2.y, p3.y);
-
-      float2 span = new float2(maxx - minx, maxy - miny);
-
-      p0 = (p0 - minx) / span;
-      p1 = (p1 - minx) / span;
-      p2 = (p2 - minx) / span;
-      p3 = (p3 - minx) / span;
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
