@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
-// using UnityEngine;
 using Unity.Mathematics;
+using Voxell.Mathx;
 
 namespace Voxell.GPUVectorGraphics.Delaunay
 {
@@ -13,13 +13,21 @@ namespace Voxell.GPUVectorGraphics.Delaunay
     private List<float2> _circumcenters;
     private List<float> _squaredRadiuses;
 
-    public DelaunayTriangulator(float2 minRect, float2 maxRect)
+    public DelaunayTriangulator(
+      float2 minRect,
+      float2 maxRect,
+      ref float2[] points
+    )
     {
       float2 p0 = new float2(minRect);
       float2 p1 = new float2(0.0f, maxRect.y);
       float2 p2 = new float2(maxRect);
       float2 p3 = new float2(maxRect.x, 0.0f);
 
+      p0.perpendicular();
+
+      _points = new List<float2>();
+      _triangles = new List<int>();
       _points.AddRange(new float2[4]{ p0, p1, p2, p3 });
       _triangles.AddRange(new int[3] { 0, 1, 2 });
       _triangles.AddRange(new int[3] { 0, 2, 3 });
@@ -35,7 +43,9 @@ namespace Voxell.GPUVectorGraphics.Delaunay
         List<Edge> polygon = FindHoleBoundaries(badTriangles);
         triangulation.RemoveWhere(o => badTriangles.Contains(o));
 
-        foreach (var edge in polygon.Where(possibleEdge => possibleEdge.Point1 != point && possibleEdge.Point2 != point))
+        foreach (var edge in polygon.Where(
+          possibleEdge => possibleEdge.Point1 != point && possibleEdge.Point2 != point
+        ))
         {
           var triangle = new Triangle(point, edge.Point1, edge.Point2);
           triangulation.Add(triangle);

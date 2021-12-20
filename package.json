@@ -1,5 +1,5 @@
 {
-  "name": "voxell.vector.graphics",
+  "name": "voxell.vectorgraphics",
   "displayName": "VX GPU Vector Graphics",
   "author": "Nixon",
   "description": "Generating vector graphics using the power of GPU.",
@@ -14,9 +14,10 @@
   "version": "0.2.0",
   "dependencies": {
     "com.unity.mathematics": "1.2.1",
-    "com.unity.collections": "0.15.0-preview.21",
-    "com.unity.jobs": "0.8.0-preview.23",
+    "com.unity.collections": "1.0.0-pre.5",
+    "com.unity.jobs": "0.11.0-preview.6",
     "com.unity.burst": "1.5.5",
-    "voxell.util": "1.3.0"
-  }
+    "voxell.util": "1.4.0"
+  },
+  "hideInEditor": false
 }

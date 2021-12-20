@@ -20,7 +20,7 @@ namespace Voxell.GPUVectorGraphics.Font
 
     /// <summary>Try obtaining the glyph index of a certain character.</summary>
     /// <returns>-1 if character does not exsists, else index of the character's glyph.</returns>
-    public int TryGetCharacterIndex(char character)
+    public int TryGetGlyhIndex(char character)
     {
       int index = -1;
       if (character < _charMap.Length) index = _charMap[character];
