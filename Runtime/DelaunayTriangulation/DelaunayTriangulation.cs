@@ -54,9 +54,9 @@ namespace Voxell.GPUVectorGraphics
       )
       {
         float2 rectDiff = maxRect - minRect;
-        float2 p0 = new float2(-2.0f*rectDiff.x + minRect.x - MARGIN, -2.0f*rectDiff.y + minRect.y + MARGIN);
+        float2 p0 = new float2(-2.0f*rectDiff.x + minRect.x - MARGIN, -2.0f*rectDiff.y + minRect.y - MARGIN);
         float2 p1 = new float2(0.5f * rectDiff.x + minRect.x, 2.0f*rectDiff.y + minRect.y + MARGIN);
-        float2 p2 = new float2(2.0f*rectDiff.x + maxRect.x + MARGIN, -2.0f*rectDiff.y + minRect.y + MARGIN);
+        float2 p2 = new float2(2.0f*rectDiff.x + maxRect.x + MARGIN, -2.0f*rectDiff.y + minRect.y - MARGIN);
 
         this.na_points = na_points;
         int originPointCount = na_points.Length;
@@ -77,6 +77,7 @@ namespace Voxell.GPUVectorGraphics
       {
         int p = 0;
         int pointCount = na_points.Length;
+        int originPointCount = pointCount-3;
         for (; p < pointCount; p++)
         {
           float2 point = na_points[p];
@@ -153,8 +154,7 @@ namespace Voxell.GPUVectorGraphics
         }
 
         // remove triangles that are related to the points of the "super trianlges"
-        p = pointCount-3;
-        for (; p < pointCount; p++)
+        for (p = originPointCount; p < pointCount; p++)
         {
           int circumCount = na_circumcenters.Length;
           int removeCount = 0;
