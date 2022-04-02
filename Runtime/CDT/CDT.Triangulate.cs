@@ -11,16 +11,15 @@ namespace Voxell.GPUVectorGraphics
     [BurstCompile]
     private struct TriangulateJob : IJob
     {
-      private const float MARGIN = 1.0f;
       public float2 minRect;
       public float2 maxRect;
 
-      public NativeList<float2> na_points;
+      public NativeArray<float2> na_points;
       public NativeList<int> na_triangles;
 
       public TriangulateJob(
         float2 minRect, float2 maxRect,
-        ref NativeList<float2> na_points,
+        ref NativeArray<float2> na_points,
         ref NativeList<int> na_triangles
       )
       {
@@ -33,24 +32,27 @@ namespace Voxell.GPUVectorGraphics
 
       public void Execute()
       {
+        int pointCount = na_points.Length;
+
         // create temp arrays
         NativeList<Edge> na_edges = new NativeList<Edge>(Allocator.Temp);
         NativeList<Edge> na_blackListedEdges = new NativeList<Edge>(Allocator.Temp);
         NativeList<Circumcenter> na_circumcenters = new NativeList<Circumcenter>(Allocator.Temp);
 
-        int pointCount = na_points.Length;
-
         // create supra-triangle
         float2 rectDiff = maxRect - minRect;
 
-        na_points.Add(new float2(-2.0f*rectDiff.x + minRect.x - MARGIN, -2.0f*rectDiff.y + minRect.y - MARGIN));
-        na_points.Add(new float2(0.5f * rectDiff.x + minRect.x, 2.0f*rectDiff.y + minRect.y + MARGIN));
-        na_points.Add(new float2(2.0f*rectDiff.x + maxRect.x + MARGIN, -2.0f*rectDiff.y + minRect.y - MARGIN));
-        AddTriangle(pointCount, pointCount + 1, pointCount + 2, ref na_circumcenters);
+        na_points[pointCount-3] = new float2(
+          -2.0f*rectDiff.x + minRect.x - MARGIN, -2.0f*rectDiff.y + minRect.y - MARGIN
+        );
+        na_points[pointCount-2] = new float2(
+          0.5f * rectDiff.x + minRect.x, 2.0f*rectDiff.y + minRect.y + MARGIN
+        );
+        na_points[pointCount-1] = new float2(
+          2.0f*rectDiff.x + maxRect.x + MARGIN, -2.0f*rectDiff.y + minRect.y - MARGIN
+        );
+        AddTriangle(pointCount - 3, pointCount - 2, pointCount - 1, ref na_circumcenters);
 
-        int originPointCount = pointCount;
-        // including the 3 new points added for the supra-triangle
-        pointCount += 3;
 
         for (int p=0; p < pointCount; p++)
         {
@@ -128,7 +130,7 @@ namespace Voxell.GPUVectorGraphics
         }
 
         // remove supra-triangle
-        for (int p = originPointCount; p < pointCount; p++)
+        for (int p = pointCount-3; p < pointCount; p++)
         {
           int circumCount = na_circumcenters.Length;
           int removeCount = 0;
@@ -139,7 +141,6 @@ namespace Voxell.GPUVectorGraphics
             if (t0 == p || t1 == p || t2 == p) RemoveTriangle(c - removeCount++, ref na_circumcenters);
           }
         }
-        na_points.RemoveRange(pointCount-3, 3);
 
         // dispose temp arrays
         na_edges.Dispose();
