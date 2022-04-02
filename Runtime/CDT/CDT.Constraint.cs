@@ -10,12 +10,12 @@ namespace Voxell.GPUVectorGraphics
     [BurstCompile]
     private struct ConstraintJob : IJob
     {
-      public NativeArray<float2> na_contour;
+      public NativeArray<int> na_contour;
       public NativeArray<float2> na_points;
       public NativeList<int> na_triangles;
 
       public ConstraintJob(
-        ref NativeArray<float2> na_contour,
+        ref NativeArray<int> na_contour,
         ref NativeArray<float2> na_points, ref NativeList<int> na_triangles
       )
       {
@@ -26,7 +26,20 @@ namespace Voxell.GPUVectorGraphics
 
       public void Execute()
       {
-        
+        int segmentCount = na_contour.Length - 1;
+
+        for (int s=0; s < segmentCount; s++)
+        {
+          int c0 = na_contour[s];
+          int c1 = na_contour[s + 1];
+        }
+      }
+
+      private void TriangleContainsEdge(int idx, ref NativeList<Circumcenter> na_circumcenters)
+      {
+        int tIdx = idx*3;
+        na_triangles.RemoveRange(tIdx, 3);
+        na_circumcenters.RemoveAt(idx);
       }
     }
   }

@@ -25,5 +25,31 @@ namespace Voxell.GPUVectorGraphics
       TriangulateJob job_triangulate = new TriangulateJob(minRect, maxRect, ref na_points, ref na_triangles);
       return job_triangulate.Schedule();
     }
+
+    #region Helper Functions
+    private static void GetTriangleIndices(
+      ref NativeList<int> na_triangles,
+      int idx, out int t0, out int t1, out int t2
+    )
+    {
+      int tIdx = idx*3;
+      t0 = na_triangles[tIdx];
+      t1 = na_triangles[tIdx + 1];
+      t2 = na_triangles[tIdx + 2];
+    }
+
+    private static void AddTriangle(ref NativeList<int> na_triangles, int t0, int t1, int t2)
+    {
+      na_triangles.Add(t0);
+      na_triangles.Add(t1);
+      na_triangles.Add(t2);
+    }
+
+    private static void RemoveTriangle(ref NativeList<int> na_triangles, int idx)
+    {
+      int tIdx = idx*3;
+      na_triangles.RemoveRange(tIdx, 3);
+    }
+    #endregion
   }
 }

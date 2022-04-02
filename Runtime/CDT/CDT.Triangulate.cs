@@ -51,7 +51,7 @@ namespace Voxell.GPUVectorGraphics
         na_points[pointCount-1] = new float2(
           2.0f*rectDiff.x + maxRect.x + MARGIN, -2.0f*rectDiff.y + minRect.y - MARGIN
         );
-        AddTriangle(pointCount - 3, pointCount - 2, pointCount - 1, ref na_circumcenters);
+        AddTriangleWithCircumcenter(ref na_circumcenters, pointCount-3, pointCount-2, pointCount-1);
 
 
         for (int p=0; p < pointCount; p++)
@@ -71,7 +71,7 @@ namespace Voxell.GPUVectorGraphics
             if (circumcenter.ContainsPoint(point))
             {
               int t0, t1, t2;
-              GetTriangleIndices(c - removeCount, out t0, out t1, out t2);
+              GetTriangleIndices(ref na_triangles, c-removeCount, out t0, out t1, out t2);
 
               Edge edge;
               edge = new Edge(t0, t1);
@@ -95,7 +95,7 @@ namespace Voxell.GPUVectorGraphics
                   na_blackListedEdges.Add(edge);
               } else na_edges.Add(edge);
 
-              RemoveTriangle(c - removeCount++, ref na_circumcenters);
+              RemoveTriangleWithCircumcenter(ref na_circumcenters, c-removeCount++);
             }
           }
 
@@ -124,8 +124,8 @@ namespace Voxell.GPUVectorGraphics
             float2 p0 = na_points[edge.e0];
             float2 p1 = na_points[edge.e1];
 
-            if (VGMath.IsClockwise(in point, in p0, in p1)) AddTriangle(p, edge.e0, edge.e1, ref na_circumcenters);
-            else AddTriangle(p, edge.e1, edge.e0, ref na_circumcenters);
+            if (VGMath.IsClockwise(in point, in p0, in p1)) AddTriangleWithCircumcenter(ref na_circumcenters, p, edge.e0, edge.e1);
+            else AddTriangleWithCircumcenter(ref na_circumcenters, p, edge.e1, edge.e0);
           }
         }
 
@@ -137,8 +137,8 @@ namespace Voxell.GPUVectorGraphics
           for (int c=0; c < circumCount; c++)
           {
             int t0, t1, t2;
-            GetTriangleIndices(c - removeCount, out t0, out t1, out t2);
-            if (t0 == p || t1 == p || t2 == p) RemoveTriangle(c - removeCount++, ref na_circumcenters);
+            GetTriangleIndices(ref na_triangles, c-removeCount, out t0, out t1, out t2);
+            if (t0 == p || t1 == p || t2 == p) RemoveTriangleWithCircumcenter(ref na_circumcenters, c-removeCount++);
           }
         }
 
@@ -148,29 +148,22 @@ namespace Voxell.GPUVectorGraphics
         na_circumcenters.Dispose();
       }
 
-      private void GetTriangleIndices(int idx, out int t0, out int t1, out int t2)
+      private void AddTriangleWithCircumcenter(
+        ref NativeList<Circumcenter> na_circumcenters, int t0, int t1, int t2
+      )
       {
-        int tIdx = idx*3;
-        t0 = na_triangles[tIdx];
-        t1 = na_triangles[tIdx + 1];
-        t2 = na_triangles[tIdx + 2];
-      }
-
-      private void AddTriangle(int t0, int t1, int t2, ref NativeList<Circumcenter> na_circumcenters)
-      {
-        na_triangles.Add(t0);
-        na_triangles.Add(t1);
-        na_triangles.Add(t2);
+        AddTriangle(ref na_triangles, t0, t1, t2);
         float2 p0 = na_points[t0];
         float2 p1 = na_points[t1];
         float2 p2 = na_points[t2];
         na_circumcenters.Add(new Circumcenter(p0, p1, p2));
       }
 
-      private void RemoveTriangle(int idx, ref NativeList<Circumcenter> na_circumcenters)
+      private void RemoveTriangleWithCircumcenter(
+        ref NativeList<Circumcenter> na_circumcenters, int idx
+      )
       {
-        int tIdx = idx*3;
-        na_triangles.RemoveRange(tIdx, 3);
+        RemoveTriangle(ref na_triangles, idx);
         na_circumcenters.RemoveAt(idx);
       }
     }
