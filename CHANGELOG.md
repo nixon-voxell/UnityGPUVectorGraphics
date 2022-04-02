@@ -1,3 +1,9 @@
+## [0.3.0]
+
+### New Features
+
+- Implementation of constraint delaunay triangulation.
+
 ## [0.2.0]
 
 ### New Features

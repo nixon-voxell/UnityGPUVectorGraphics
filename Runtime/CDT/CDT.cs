@@ -8,9 +8,25 @@ namespace Voxell.GPUVectorGraphics
   {
     private const float MARGIN = 1.0f;
 
-    // this is just for testing purposes, in practice,
-    // we will be scheduling multiple jobs for every unique shape
-    // and dispose the native list ourselves
+    public static JobHandle ConstraintTriangulate(
+      float2 minRect, float2 maxRect, in float2[] points, in int[] contour,
+      out NativeArray<float2> na_points, out NativeList<int> na_triangles, out NativeArray<int> na_contour
+    )
+    {
+      na_contour = new NativeArray<int>(contour, Allocator.TempJob);
+      JobHandle triangulateJobHandle = Triangulate(minRect, maxRect, in points, out na_points, out na_triangles);
+      ConstraintJob job_constraint = new ConstraintJob(ref na_contour, ref na_points, ref na_triangles);
+      JobHandle constraintJobHandle = job_constraint.Schedule(triangulateJobHandle);
+      return constraintJobHandle;
+    }
+
+    /// <summary>Performs a delaunay triangulation on a set of points.</summary>
+    /// <param name="minRect">minimum point of the point set</param>
+    /// <param name="maxRect">maximum point of the point set</param>
+    /// <param name="points">points to be triangulated</param>
+    /// <param name="na_points">a copy of the input point array</param>
+    /// <param name="na_triangles">output of the final triangle list</param>
+    /// <returns>A JobHandle the is being scheduled for delaunay triangulation.</returns>
     public static JobHandle Triangulate(
       float2 minRect, float2 maxRect, in float2[] points,
       out NativeArray<float2> na_points, out NativeList<int> na_triangles
@@ -22,7 +38,9 @@ namespace Voxell.GPUVectorGraphics
       NativeSlice<float2> na_points_slice = na_points.Slice(0, points.Length);
       na_points_slice.CopyFrom(points);
 
-      TriangulateJob job_triangulate = new TriangulateJob(minRect, maxRect, ref na_points, ref na_triangles);
+      TriangulateJob job_triangulate = new TriangulateJob(
+        minRect, maxRect, ref na_points, ref na_triangles
+      );
       return job_triangulate.Schedule();
     }
 
