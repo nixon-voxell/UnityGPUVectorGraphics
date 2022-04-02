@@ -3,10 +3,11 @@ using System.IO;
 using UnityEngine;
 using UnityEditor.AssetImporters;
 using Unity.Mathematics;
-using Voxell.Inspector;
 
 namespace Voxell.GPUVectorGraphics.Font
 {
+  using Inspector;
+
   [ScriptedImporter(1,  new[] { "ttfvector", "otfVector" }, new[] { "ttf", "otf" })]
   public class FontImporter : ScriptedImporter
   {
@@ -24,7 +25,7 @@ namespace Voxell.GPUVectorGraphics.Font
 
     [Tooltip("Format of the font."), InspectOnly]
     public FontFormat fontFormat;
-    [Tooltip("0x00010000 (TTF) or 0x4F54544F (OTF)."),InspectOnly]
+    [Tooltip("0x00010000 (TTF) or 0x4F54544F (OTF)."), InspectOnly]
     public uint sfntVersion;
     [Tooltip("Number of tables."), InspectOnly]
     public ushort numTables;

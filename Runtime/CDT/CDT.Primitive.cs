@@ -1,10 +1,8 @@
 using Unity.Mathematics;
-using Voxell.Mathx;
 
 namespace Voxell.GPUVectorGraphics
 {
-  // should it be static or partial?
-  public partial class DelaunayTriangulation
+  public partial class CDT
   {
     private struct Edge : System.IEquatable<Edge>
     {
