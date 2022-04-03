@@ -72,12 +72,6 @@ namespace Voxell.GPUVectorGraphics
       int tIdx = idx*3;
       na_triangles.RemoveRange(tIdx, 3);
     }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static bool EdgeConnected(int e0, int e1, int q0, int q1)
-    {
-      return e0 == q0 || e0 == q1 || e1 == q0 || e1 == q1;
-    }
     #endregion
   }
 }

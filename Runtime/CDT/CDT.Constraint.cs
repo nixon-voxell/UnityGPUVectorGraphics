@@ -5,6 +5,8 @@ using Unity.Burst;
 
 namespace Voxell.GPUVectorGraphics
 {
+  using Mathx;
+
   public partial class CDT
   {
     [BurstCompile]
@@ -45,9 +47,9 @@ namespace Voxell.GPUVectorGraphics
             na_edges.Add(edge2);
         }
 
-        NativeList<int> outsidePoints = new NativeList<int>(Allocator.Temp);
-        NativeList<int> insidePoints = new NativeList<int>(Allocator.Temp);
-        NativeList<int> blackListedTris = new NativeList<int>(Allocator.Temp);
+        NativeList<int> na_outsidePoints = new NativeList<int>(Allocator.Temp);
+        NativeList<int> na_insidePoints = new NativeList<int>(Allocator.Temp);
+        NativeList<int> na_blackListedTris = new NativeList<int>(Allocator.Temp);
 
         int segmentCount = na_contours.Length - 1;
         for (int s=0; s < segmentCount; s++)
@@ -63,62 +65,82 @@ namespace Voxell.GPUVectorGraphics
           Edge edge = new Edge(e0, e1);
           if (na_edges.Contains(edge)) continue;
 
-          UnityEngine.Debug.Log($"#{s}: {edge.e0}, {edge.e1}");
-
           // remove all blocking triangles
           int triangleCount = na_triangles.Length/3;
           for (int t=0; t < triangleCount; t++)
           {
-            if (TriEdgeIntersect(t, edge))
+            int3 tIdx;
+            GetTriangleIndices(ref na_triangles, t, out tIdx.x, out tIdx.y, out tIdx.z);
+
+            bool3 diff_t;
+            float2x3 tPoints;
+            float2x2 ePoints;
+            if (TriEdgeIntersect(in tIdx, in edge, out diff_t, out tPoints, out ePoints))
             {
               // black list triangle to be removed later
-              blackListedTris.Add(t);
+              na_blackListedTris.Add(t);
 
               // sort points into outside and inside regions
+              float2 n = math.normalize(float2x.perpendicular(ePoints[1] - ePoints[0]));
+              for (int i=0; i < 3; i++)
+              {
+                if (diff_t[i])
+                {
+                  if (math.dot(n, tPoints[i] - ePoints[0]) > 0.0f) na_outsidePoints.Add(tIdx[i]);
+                  else na_insidePoints.Add(tIdx[i]);
+                }
+              }
             }
           }
 
           // remove all blacklisted triangles
-          int blackListedTriCount = blackListedTris.Length;
+          int blackListedTriCount = na_blackListedTris.Length;
           int removeCount = 0;
           for (int t=0; t < blackListedTriCount; t++)
-            RemoveTriangle(ref na_triangles, blackListedTris[t]-removeCount++);
+            RemoveTriangle(ref na_triangles, na_blackListedTris[t]-removeCount++);
 
           // retriangulate outside points
 
           // retriangulate inside points
 
-          insidePoints.Clear();
-          outsidePoints.Clear();
-          blackListedTris.Clear();
+          na_insidePoints.Clear();
+          na_outsidePoints.Clear();
+          na_blackListedTris.Clear();
         }
 
         na_edges.Dispose();
-        outsidePoints.Dispose();
-        insidePoints.Dispose();
-        blackListedTris.Dispose();
+        na_outsidePoints.Dispose();
+        na_insidePoints.Dispose();
+        na_blackListedTris.Dispose();
       }
 
-      private bool TriEdgeIntersect(int idx, Edge edge)
+      private bool TriEdgeIntersect(
+        in int3 tIdx, in Edge edge,
+        out bool3 diff_t,
+        out float2x3 tPoints,
+        out float2x2 ePoints
+      )
       {
-        int t0, t1, t2;
-        GetTriangleIndices(ref na_triangles, idx, out t0, out t1, out t2);
+        int e0 = edge.e0, e1 = edge.e1;
+        ePoints = new float2x2(na_points[e0], na_points[e1]);
 
-        float2 t_p0 = na_points[t0];
-        float2 t_p1 = na_points[t1];
-        float2 t_p2 = na_points[t2];
-
-        float2 e_p0 = na_points[edge.e0];
-        float2 e_p1 = na_points[edge.e1];
+        diff_t = new bool3();
+        tPoints = new float2x3();
+        for (int i=0; i < 3; i++)
+        {
+          diff_t[i] = !(tIdx[i] == e0 || tIdx[i] == e1);
+          tPoints[i] = na_points[tIdx[i]];
+        }
 
         // only check for edge intersection when both edge are not connected
         // return a true, if either one of it intersects
-        if (!EdgeConnected(t0, t1, edge.e0, edge.e1))
-          if (VGMath.LinesIntersect(t_p0, t_p1, e_p0, e_p1)) return true;
-        if (!EdgeConnected(t1, t2, edge.e0, edge.e1))
-          if (VGMath.LinesIntersect(t_p1, t_p2, e_p0, e_p1)) return true;
-        if (!EdgeConnected(t2, t0, edge.e0, edge.e1))
-          if (VGMath.LinesIntersect(t_p2, t_p0, e_p0, e_p1)) return true;
+        for (int i=0; i < 3; i++)
+        {
+          int nextIdx = (i + 1) % 3;
+          if (diff_t[i] && diff_t[nextIdx])
+            if (VGMath.LinesIntersect(tPoints[i], tPoints[nextIdx], ePoints[0], ePoints[1]))
+              return true;
+        }
 
         return false;
       }
