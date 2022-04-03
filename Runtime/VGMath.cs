@@ -3,7 +3,7 @@ using Unity.Mathematics;
 
 namespace Voxell.GPUVectorGraphics
 {
-  internal static class BezierMath
+  internal static class VGMath
   {
     /// <summary>Determines if a point is inside a triangle.</summary>
     internal static bool PointInTriangle(
@@ -39,6 +39,7 @@ namespace Voxell.GPUVectorGraphics
         && Orientation(p2, q2, p1) != Orientation(p2, q2, q1));
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal static int Orientation(float2 p1, float2 p2, float2 p3)
     {
       float crossProduct = (p2.y - p1.y) * (p3.x - p2.x) - (p3.y - p2.y) * (p2.x - p1.x);
@@ -46,11 +47,9 @@ namespace Voxell.GPUVectorGraphics
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    internal static float MaxOutOfFour(float x0, float x1, float x2, float x3)
-      => math.max(math.max(math.max(x0, x1), x2), x3);
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    internal static float MinOutOfFour(float x0, float x1, float x2, float x3)
-      => math.min(math.min(math.min(x0, x1), x2), x3);
+    internal static bool IsClockwise(in float2 p0, in float2 p1, in float2 p2)
+    {
+      return (p1.x - p0.x) * (p2.y - p0.y) - (p2.x - p0.x) * (p1.y - p0.y) < 0;
+    }
   }
 }

@@ -51,3 +51,4 @@ See [license file](./LICENSE) for details.
 3. [Beny_Core (GitHub)](https://github.com/Reavenk/Berny_Core)
 4. [Resolution Independent Curve Rendering using Programmable Grpahics Hardware](https://www.microsoft.com/en-us/research/wp-content/uploads/2005/01/p1000-loop.pdf)
 5. [NVIDIA GPU Gem 3 - Rendering Vector Art on the GPU](https://developer.nvidia.com/gpugems/gpugems3/part-iv-image-effects/chapter-25-rendering-vector-art-gpu)
+6. [Delaunay Voronoi (GitHub)](https://github.com/RafaelKuebler/DelaunayVoronoi)

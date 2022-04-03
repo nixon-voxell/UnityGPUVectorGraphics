@@ -49,7 +49,7 @@ namespace Voxell.GPUVectorGraphics
         for (int j=0; j < 4; ++j)
           if (i != j) indices[index++] = j;
 
-        if (BezierMath.PointInTriangle(points[i], points[indices[0]], points[indices[1]], points[indices[2]]))
+        if (VGMath.PointInTriangle(points[i], points[indices[0]], points[indices[1]], points[indices[2]]))
         {
           // produce three triangles surrounding this interior vertex.
           for (int j=0; j < 3; ++j)
@@ -86,7 +86,7 @@ namespace Voxell.GPUVectorGraphics
       // From which we can choose by seeing which of the potential
       // diagonals intersect. Note that we choose the shortest diagonal
       // to split the quad.
-      if (BezierMath.LinesIntersect(points[0], points[2], points[1], points[3]))
+      if (VGMath.LinesIntersect(points[0], points[2], points[1], points[3]))
       {
         if (math.lengthsq(points[2] - points[0]) < math.lengthsq(points[3] - points[1]))
         {
@@ -113,7 +113,7 @@ namespace Voxell.GPUVectorGraphics
             1, 2, 3, points, coords
           );
         }
-      } else if (BezierMath.LinesIntersect(points[0], points[3], points[1], points[2]))
+      } else if (VGMath.LinesIntersect(points[0], points[3], points[1], points[2]))
       {
         if (math.lengthsq(points[3] - points[0]) < math.lengthsq(points[2] - points[1]))
         {
