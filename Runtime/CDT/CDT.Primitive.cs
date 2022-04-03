@@ -4,7 +4,7 @@ namespace Voxell.GPUVectorGraphics
 {
   public partial class CDT
   {
-    public struct Edge : System.IEquatable<Edge>
+    private struct Edge : System.IEquatable<Edge>
     {
       public int e0, e1;
 
@@ -25,7 +25,7 @@ namespace Voxell.GPUVectorGraphics
         (this.e0 == other.e1 && this.e1 == other.e0);
     }
 
-    public struct Circumcenter
+    private struct Circumcenter
     {
       public float2 center;
       public float sqradius;
@@ -50,6 +50,18 @@ namespace Voxell.GPUVectorGraphics
       {
         float sqlength = math.lengthsq(center - p);
         return sqlength < sqradius;
+      }
+    }
+
+    public struct ContourPoint
+    {
+      public int pointIdx;
+      public int contourIdx;
+
+      public ContourPoint(int pointIdx, int contourIdx)
+      {
+        this.pointIdx = pointIdx;
+        this.contourIdx = contourIdx;
       }
     }
   }

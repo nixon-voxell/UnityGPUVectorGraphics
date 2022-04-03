@@ -1,3 +1,4 @@
+using System.Runtime.CompilerServices;
 using Unity.Mathematics;
 using Unity.Collections;
 using Unity.Jobs;
@@ -9,15 +10,15 @@ namespace Voxell.GPUVectorGraphics
     private const float MARGIN = 1.0f;
 
     public static JobHandle ConstraintTriangulate(
-      float2 minRect, float2 maxRect, in float2[] points, in int[] contour,
-      out NativeArray<float2> na_points, out NativeList<int> na_triangles, out NativeArray<int> na_contour
+      float2 minRect, float2 maxRect, in float2[] points, in ContourPoint[] contours,
+      out NativeArray<float2> na_points, out NativeList<int> na_triangles,
+      out NativeArray<ContourPoint> na_contours
     )
     {
-      na_contour = new NativeArray<int>(contour, Allocator.TempJob);
-      JobHandle triangulateJobHandle = Triangulate(minRect, maxRect, in points, out na_points, out na_triangles);
-      ConstraintJob job_constraint = new ConstraintJob(ref na_contour, ref na_points, ref na_triangles);
-      JobHandle constraintJobHandle = job_constraint.Schedule(triangulateJobHandle);
-      return constraintJobHandle;
+      na_contours = new NativeArray<ContourPoint>(contours, Allocator.TempJob);
+      JobHandle jobHandle = Triangulate(minRect, maxRect, in points, out na_points, out na_triangles);
+      ConstraintJob job_constraint = new ConstraintJob(ref na_contours, ref na_points, ref na_triangles);
+      return job_constraint.Schedule(jobHandle);
     }
 
     /// <summary>Performs a delaunay triangulation on a set of points.</summary>
@@ -45,6 +46,7 @@ namespace Voxell.GPUVectorGraphics
     }
 
     #region Helper Functions
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static void GetTriangleIndices(
       ref NativeList<int> na_triangles,
       int idx, out int t0, out int t1, out int t2
@@ -56,6 +58,7 @@ namespace Voxell.GPUVectorGraphics
       t2 = na_triangles[tIdx + 2];
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static void AddTriangle(ref NativeList<int> na_triangles, int t0, int t1, int t2)
     {
       na_triangles.Add(t0);
@@ -63,10 +66,17 @@ namespace Voxell.GPUVectorGraphics
       na_triangles.Add(t2);
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static void RemoveTriangle(ref NativeList<int> na_triangles, int idx)
     {
       int tIdx = idx*3;
       na_triangles.RemoveRange(tIdx, 3);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static bool EdgeConnected(int e0, int e1, int q0, int q1)
+    {
+      return e0 == q0 || e0 == q1 || e1 == q0 || e1 == q1;
     }
     #endregion
   }

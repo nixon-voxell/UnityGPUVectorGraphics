@@ -13,10 +13,10 @@
   "unityRelease": "0f1",
   "version": "0.2.0",
   "dependencies": {
-    "com.unity.mathematics": "1.2.1",
-    "com.unity.collections": "1.0.0-pre.5",
+    "com.unity.mathematics": "1.2.5",
+    "com.unity.collections": "1.2.3",
     "com.unity.jobs": "0.11.0-preview.6",
-    "com.unity.burst": "1.5.5",
+    "com.unity.burst": "1.6.5",
     "voxell.util": "1.4.0"
   },
   "hideInEditor": false
