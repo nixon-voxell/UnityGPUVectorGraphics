@@ -4,6 +4,10 @@
 
 - Implementation of constraint delaunay triangulation.
 
+### Changes
+
+- Removed `Voxell.GPUVectorGraphics.Delaunay` namespace.
+
 ## [0.2.0]
 
 ### New Features
