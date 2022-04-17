@@ -34,7 +34,7 @@ namespace Voxell.GPUVectorGraphics
     )
     {
       // last 3 points are for the supra-triangle (will be used throughout the CDT process too)
-      na_points = new NativeArray<float2>(points.Length + 3, Allocator.TempJob);
+      na_points = new NativeArray<float2>(points.Length + 4, Allocator.TempJob);
       na_triangles = new NativeList<int>(Allocator.TempJob);
 
       NativeSlice<float2> na_points_slice = na_points.Slice(0, points.Length);
