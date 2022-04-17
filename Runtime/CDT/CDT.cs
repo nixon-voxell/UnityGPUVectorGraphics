@@ -47,9 +47,44 @@ namespace Voxell.GPUVectorGraphics
     }
 
     #region Helper Functions
+    /// <summary>Checks if an edge intersects a triangle.</summary>
+    /// <param name="na_points">point pool</param>
+    /// <param name="tIdx">triangle index</param>
+    /// <param name="edge">edge indices</param>
+    /// <param name="ePoints">2 points that makes up the edge</param>
+    /// <param name="diff_t">if triangle point is part of the edge</param>
+    /// <param name="tPoints">triangle points</param>
+    /// <returns></returns>
+    private static bool TriEdgeIntersect(
+      in NativeArray<float2> na_points,
+      in int3 tIdx, in Edge edge, in float2x2 ePoints,
+      out bool3 diff_t, out float2x3 tPoints
+    )
+    {
+      diff_t = new bool3();
+      tPoints = new float2x3();
+      for (int i=0; i < 3; i++)
+      {
+        diff_t[i] = !(tIdx[i] == edge.e0 || tIdx[i] == edge.e1);
+        tPoints[i] = na_points[tIdx[i]];
+      }
+
+      // only check for edge intersection when both edge are not connected
+      // return a true, if either one of it intersects
+      for (int i=0; i < 3; i++)
+      {
+        int nextIdx = (i + 1) % 3;
+        if (diff_t[i] && diff_t[nextIdx])
+          if (VGMath.LinesIntersect(tPoints[i], tPoints[nextIdx], ePoints[0], ePoints[1]))
+            return true;
+      }
+
+      return false;
+    }
+
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static void GetTriangleIndices(
-      ref NativeList<int> na_triangles,
+      in NativeList<int> na_triangles,
       int idx, out int t0, out int t1, out int t2
     )
     {
@@ -76,7 +111,7 @@ namespace Voxell.GPUVectorGraphics
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static void AddTriAndCircum(
-      ref NativeList<int> na_triangles, ref NativeArray<float2> na_points,
+      in NativeArray<float2> na_points, ref NativeList<int> na_triangles,
       ref NativeList<Circumcenter> na_circumcenters,
       int t0, int t1, int t2
     )

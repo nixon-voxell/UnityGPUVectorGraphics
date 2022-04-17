@@ -33,7 +33,7 @@ namespace Voxell.GPUVectorGraphics
         for (int t=0, triangleCount=na_triangles.Length/3; t < triangleCount; t++)
         {
           int t0, t1, t2;
-          GetTriangleIndices(ref na_triangles, t, out t0, out t1, out t2);
+          GetTriangleIndices(in na_triangles, t, out t0, out t1, out t2);
           Edge edge0 = new Edge(t0, t1);
           Edge edge1 = new Edge(t1, t2);
           Edge edge2 = new Edge(t2, t0);
@@ -73,7 +73,7 @@ namespace Voxell.GPUVectorGraphics
 
           // if edge already exist, continue to the next contour segment
           Edge edge = new Edge(e0, e1);
-          if (na_repairEdges.Contains(edge)) continue;
+          if (na_edges.Contains(edge)) continue;
 
           // initialize point list with edge points
           na_outsideIndices.Add(e0); na_outsideIndices.Add(e1);
@@ -87,11 +87,11 @@ namespace Voxell.GPUVectorGraphics
           for (int t=0; t < triangleCount; t++)
           {
             int3 tIdx;
-            GetTriangleIndices(ref na_triangles, t, out tIdx.x, out tIdx.y, out tIdx.z);
+            GetTriangleIndices(in na_triangles, t, out tIdx.x, out tIdx.y, out tIdx.z);
 
             bool3 diff_t;
             float2x3 tPoints;
-            if (TriEdgeIntersect(in tIdx, in edge, in ePoints, out diff_t, out tPoints))
+            if (TriEdgeIntersect(in na_points, in tIdx, in edge, in ePoints, out diff_t, out tPoints))
             {
               // black list triangle to be removed later
               na_blackListedTris.Add(t);
@@ -138,40 +138,23 @@ namespace Voxell.GPUVectorGraphics
           }
         }
 
-        na_repairEdges.Dispose();
+        // disposing all temp allocations
+        na_edges.Dispose();
+
         na_outsideIndices.Dispose();
         na_insideIndices.Dispose();
         na_blackListedTris.Dispose();
+
+        na_repairTriangles.Dispose();
+        na_repairEdges.Dispose();
+        na_blackListedRepairEdges.Dispose();
+        na_repairCircumcenters.Dispose();
       }
 
-      private bool TriEdgeIntersect(
-        in int3 tIdx, in Edge edge,
-        in float2x2 ePoints,
-        out bool3 diff_t,
-        out float2x3 tPoints
-      )
-      {
-        diff_t = new bool3();
-        tPoints = new float2x3();
-        for (int i=0; i < 3; i++)
-        {
-          diff_t[i] = !(tIdx[i] == edge.e0 || tIdx[i] == edge.e1);
-          tPoints[i] = na_points[tIdx[i]];
-        }
-
-        // only check for edge intersection when both edge are not connected
-        // return a true, if either one of it intersects
-        for (int i=0; i < 3; i++)
-        {
-          int nextIdx = (i + 1) % 3;
-          if (diff_t[i] && diff_t[nextIdx])
-            if (VGMath.LinesIntersect(tPoints[i], tPoints[nextIdx], ePoints[0], ePoints[1]))
-              return true;
-        }
-
-        return false;
-      }
-
+      /// <summary>Delaunay triangulate a portion of points defined by an indices array.</summary>
+      /// <param name="minRect">min AABB point</param>
+      /// <param name="maxRect">max AABB point</param>
+      /// <param name="na_indices">indices array indicating the portion of points to be triangulated</param>
       private void TriangulatePoints(
         in float2 minRect, in float2 maxRect, in NativeList<int> na_indices,
         ref NativeList<int> na_repairTriangles,
@@ -195,11 +178,11 @@ namespace Voxell.GPUVectorGraphics
         na_points[pointCount-1] = new float2(marginedMaxRect.x, marginedMinRect.y);
 
         AddTriAndCircum(
-          ref na_repairTriangles, ref na_points, ref na_repairCircumcenters,
+          in na_points, ref na_repairTriangles, ref na_repairCircumcenters,
           pointCount-4, pointCount-3, pointCount-2
         );
         AddTriAndCircum(
-          ref na_repairTriangles, ref na_points, ref na_repairCircumcenters,
+          in na_points, ref na_repairTriangles, ref na_repairCircumcenters,
           pointCount-4, pointCount-2, pointCount-1
         );
 
@@ -208,8 +191,8 @@ namespace Voxell.GPUVectorGraphics
           na_repairEdges.Clear();
           na_blackListedRepairEdges.Clear();
 
-          int p = na_indices[i];
-          float2 point = na_points[p];
+          int pIdx = na_indices[i];
+          float2 point = na_points[pIdx];
 
           // remove triangles that contains the current point in its circumcenter
           int circumCount = na_repairCircumcenters.Length;
@@ -220,10 +203,9 @@ namespace Voxell.GPUVectorGraphics
             if (circumcenter.ContainsPoint(point))
             {
               int t0, t1, t2;
-              GetTriangleIndices(ref na_repairTriangles, c-removeCount, out t0, out t1, out t2);
+              GetTriangleIndices(in na_repairTriangles, c-removeCount, out t0, out t1, out t2);
 
-              Edge edge = new Edge();
-              edge.SetEdge(t0, t1);
+              Edge edge = new Edge(t0, t1);
               if (na_repairEdges.Contains(edge))
               {
                 if (!na_blackListedRepairEdges.Contains(edge))
@@ -271,17 +253,17 @@ namespace Voxell.GPUVectorGraphics
           for (int e=0; e < edgeCount; e++)
           {
             Edge edge = na_repairEdges[e];
-            if (edge.e0 == p || edge.e1 == p) continue;
+            if (edge.e0 == pIdx || edge.e1 == pIdx) continue;
             float2 p0 = na_points[edge.e0];
             float2 p1 = na_points[edge.e1];
 
             if (VGMath.IsClockwise(in point, in p0, in p1))
               AddTriAndCircum(
-                ref na_repairTriangles, ref na_points, ref na_repairCircumcenters, p, edge.e0, edge.e1
+                in na_points, ref na_repairTriangles, ref na_repairCircumcenters, pIdx, edge.e0, edge.e1
               );
             else
               AddTriAndCircum(
-                ref na_repairTriangles, ref na_points, ref na_repairCircumcenters, p, edge.e1, edge.e0
+                in na_points, ref na_repairTriangles, ref na_repairCircumcenters, pIdx, edge.e1, edge.e0
               );
           }
         }
@@ -294,7 +276,7 @@ namespace Voxell.GPUVectorGraphics
           for (int t=0; t < triCount; t++)
           {
             int t0, t1, t2;
-            GetTriangleIndices(ref na_repairTriangles, t-removeCount, out t0, out t1, out t2);
+            GetTriangleIndices(in na_repairTriangles, t-removeCount, out t0, out t1, out t2);
             if (t0 == p || t1 == p || t2 == p)
               RemoveTriangle(ref na_repairTriangles, t-removeCount++);
           }

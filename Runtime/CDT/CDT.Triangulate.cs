@@ -49,11 +49,11 @@ namespace Voxell.GPUVectorGraphics
         na_points[pointCount-1] = new float2(marginedMaxRect.x, marginedMinRect.y);
 
         AddTriAndCircum(
-          ref na_triangles, ref na_points, ref na_circumcenters,
+          in na_points, ref na_triangles, ref na_circumcenters,
           pointCount-4, pointCount-3, pointCount-2
         );
         AddTriAndCircum(
-          ref na_triangles, ref na_points, ref na_circumcenters,
+          in na_points, ref na_triangles, ref na_circumcenters,
           pointCount-4, pointCount-2, pointCount-1
         );
 
@@ -73,10 +73,9 @@ namespace Voxell.GPUVectorGraphics
             if (circumcenter.ContainsPoint(point))
             {
               int t0, t1, t2;
-              GetTriangleIndices(ref na_triangles, c-removeCount, out t0, out t1, out t2);
+              GetTriangleIndices(in na_triangles, c-removeCount, out t0, out t1, out t2);
 
-              Edge edge = new Edge();
-              edge.SetEdge(t0, t1);
+              Edge edge = new Edge(t0, t1);
               if (na_edges.Contains(edge))
               {
                 if (!na_blackListedEdges.Contains(edge))
@@ -130,11 +129,11 @@ namespace Voxell.GPUVectorGraphics
 
             if (VGMath.IsClockwise(in point, in p0, in p1))
               AddTriAndCircum(
-                ref na_triangles, ref na_points, ref na_circumcenters, p, edge.e0, edge.e1
+                in na_points, ref na_triangles, ref na_circumcenters, p, edge.e0, edge.e1
               );
             else
               AddTriAndCircum(
-                ref na_triangles, ref na_points, ref na_circumcenters, p, edge.e1, edge.e0
+                in na_points, ref na_triangles, ref na_circumcenters, p, edge.e1, edge.e0
               );
           }
         }
@@ -147,7 +146,7 @@ namespace Voxell.GPUVectorGraphics
           for (int c=0; c < circumCount; c++)
           {
             int t0, t1, t2;
-            GetTriangleIndices(ref na_triangles, c-removeCount, out t0, out t1, out t2);
+            GetTriangleIndices(in na_triangles, c-removeCount, out t0, out t1, out t2);
             if (t0 == p || t1 == p || t2 == p)
               RemoveTriAndCircum(ref na_circumcenters, ref na_triangles, c-removeCount++);
           }
