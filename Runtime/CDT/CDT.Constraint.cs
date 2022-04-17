@@ -182,24 +182,25 @@ namespace Voxell.GPUVectorGraphics
       {
         na_repairTriangles.Clear();
         na_repairCircumcenters.Clear();
-
-        float2 rectDiff = maxRect - minRect;
         int pointCount = na_points.Length;
         int idxCount = na_indices.Length;
 
-        na_points[pointCount-3] = new float2(
-          -2.0f*rectDiff.x + minRect.x - MARGIN, -2.0f*rectDiff.y + minRect.y - MARGIN
-        );
-        na_points[pointCount-2] = new float2(
-          0.5f * rectDiff.x + minRect.x, 2.0f*rectDiff.y + minRect.y + MARGIN
-        );
-        na_points[pointCount-1] = new float2(
-          2.0f*rectDiff.x + maxRect.x + MARGIN, -2.0f*rectDiff.y + minRect.y - MARGIN
-        );
+        // create rect-triangle
+        float2 marginedMinRect = minRect - MARGIN;
+        float2 marginedMaxRect = maxRect + MARGIN;
+
+        na_points[pointCount-4] = marginedMinRect;
+        na_points[pointCount-3] = new float2(marginedMinRect.x, marginedMaxRect.y);
+        na_points[pointCount-2] = marginedMaxRect;
+        na_points[pointCount-1] = new float2(marginedMaxRect.x, marginedMinRect.y);
 
         AddTriAndCircum(
           ref na_repairTriangles, ref na_points, ref na_repairCircumcenters,
-          pointCount-3, pointCount-2, pointCount-1
+          pointCount-4, pointCount-3, pointCount-2
+        );
+        AddTriAndCircum(
+          ref na_repairTriangles, ref na_points, ref na_repairCircumcenters,
+          pointCount-4, pointCount-2, pointCount-1
         );
 
         for (int i=0; i < idxCount; i++)
@@ -285,8 +286,8 @@ namespace Voxell.GPUVectorGraphics
           }
         }
 
-        // remove supra-triangle
-        for (int p=pointCount-3; p < pointCount; p++)
+        // remove rect-triangle
+        for (int p=pointCount-4; p < pointCount; p++)
         {
           int triCount = na_repairTriangles.Length/3;
           int removeCount = 0;

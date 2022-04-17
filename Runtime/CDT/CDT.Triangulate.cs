@@ -40,12 +40,13 @@ namespace Voxell.GPUVectorGraphics
         NativeList<Circumcenter> na_circumcenters = new NativeList<Circumcenter>(Allocator.Temp);
 
         // create rect-triangle
-        minRect -= MARGIN;
-        maxRect += MARGIN;
-        na_points[pointCount-4] = minRect;
-        na_points[pointCount-3] = new float2(minRect.x, maxRect.y);
-        na_points[pointCount-2] = maxRect;
-        na_points[pointCount-1] = new float2(maxRect.x, minRect.y);
+        float2 marginedMinRect = minRect - MARGIN;
+        float2 marginedMaxRect = maxRect + MARGIN;
+
+        na_points[pointCount-4] = marginedMinRect;
+        na_points[pointCount-3] = new float2(marginedMinRect.x, marginedMaxRect.y);
+        na_points[pointCount-2] = marginedMaxRect;
+        na_points[pointCount-1] = new float2(marginedMaxRect.x, marginedMinRect.y);
 
         AddTriAndCircum(
           ref na_triangles, ref na_points, ref na_circumcenters,
@@ -55,7 +56,6 @@ namespace Voxell.GPUVectorGraphics
           ref na_triangles, ref na_points, ref na_circumcenters,
           pointCount-4, pointCount-2, pointCount-1
         );
-
 
         for (int p=0, originPointCount=pointCount-4; p < originPointCount; p++)
         {
