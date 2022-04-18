@@ -39,25 +39,25 @@ namespace Voxell.GPUVectorGraphics
         NativeList<Edge> na_blackListedEdges = new NativeList<Edge>(Allocator.Temp);
         NativeList<Circumcenter> na_circumcenters = new NativeList<Circumcenter>(Allocator.Temp);
 
-        // create supra-triangle
-        float2 rectDiff = maxRect - minRect;
+        // create rect-triangle
+        float2 marginedMinRect = minRect - MARGIN;
+        float2 marginedMaxRect = maxRect + MARGIN;
 
-        na_points[pointCount-3] = new float2(
-          -2.0f*rectDiff.x + minRect.x - MARGIN, -2.0f*rectDiff.y + minRect.y - MARGIN
-        );
-        na_points[pointCount-2] = new float2(
-          0.5f * rectDiff.x + minRect.x, 2.0f*rectDiff.y + minRect.y + MARGIN
-        );
-        na_points[pointCount-1] = new float2(
-          2.0f*rectDiff.x + maxRect.x + MARGIN, -2.0f*rectDiff.y + minRect.y - MARGIN
+        na_points[pointCount-4] = marginedMinRect;
+        na_points[pointCount-3] = new float2(marginedMinRect.x, marginedMaxRect.y);
+        na_points[pointCount-2] = marginedMaxRect;
+        na_points[pointCount-1] = new float2(marginedMaxRect.x, marginedMinRect.y);
+
+        AddTriAndCircum(
+          in na_points, ref na_triangles, ref na_circumcenters,
+          pointCount-4, pointCount-3, pointCount-2
         );
         AddTriAndCircum(
-          ref na_triangles, ref na_points, ref na_circumcenters,
-          pointCount-3, pointCount-2, pointCount-1
+          in na_points, ref na_triangles, ref na_circumcenters,
+          pointCount-4, pointCount-2, pointCount-1
         );
 
-
-        for (int p=0, originPointCount=pointCount-3; p < originPointCount; p++)
+        for (int p=0, originPointCount=pointCount-4; p < originPointCount; p++)
         {
           na_edges.Clear();
           na_blackListedEdges.Clear();
@@ -69,14 +69,13 @@ namespace Voxell.GPUVectorGraphics
           int removeCount = 0;
           for (int c=0; c < circumCount; c++)
           {
-            Circumcenter circumcenter = na_circumcenters[c - removeCount];
+            Circumcenter circumcenter = na_circumcenters[c-removeCount];
             if (circumcenter.ContainsPoint(point))
             {
               int t0, t1, t2;
-              GetTriangleIndices(ref na_triangles, c-removeCount, out t0, out t1, out t2);
+              GetTriangleIndices(in na_triangles, c-removeCount, out t0, out t1, out t2);
 
-              Edge edge = new Edge();
-              edge.SetEdge(t0, t1);
+              Edge edge = new Edge(t0, t1);
               if (na_edges.Contains(edge))
               {
                 if (!na_blackListedEdges.Contains(edge))
@@ -130,24 +129,24 @@ namespace Voxell.GPUVectorGraphics
 
             if (VGMath.IsClockwise(in point, in p0, in p1))
               AddTriAndCircum(
-                ref na_triangles, ref na_points, ref na_circumcenters, p, edge.e0, edge.e1
+                in na_points, ref na_triangles, ref na_circumcenters, p, edge.e0, edge.e1
               );
             else
               AddTriAndCircum(
-                ref na_triangles, ref na_points, ref na_circumcenters, p, edge.e1, edge.e0
+                in na_points, ref na_triangles, ref na_circumcenters, p, edge.e1, edge.e0
               );
           }
         }
 
-        // remove supra-triangle
-        for (int p=pointCount-3; p < pointCount; p++)
+        // remove rect-triangle
+        for (int p=pointCount-4; p < pointCount; p++)
         {
           int circumCount = na_circumcenters.Length;
           int removeCount = 0;
           for (int c=0; c < circumCount; c++)
           {
             int t0, t1, t2;
-            GetTriangleIndices(ref na_triangles, c-removeCount, out t0, out t1, out t2);
+            GetTriangleIndices(in na_triangles, c-removeCount, out t0, out t1, out t2);
             if (t0 == p || t1 == p || t2 == p)
               RemoveTriAndCircum(ref na_circumcenters, ref na_triangles, c-removeCount++);
           }
