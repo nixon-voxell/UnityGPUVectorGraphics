@@ -1,13 +1,12 @@
-## [0.4.0]
+## [0.3.1]
 
 ### New Features
 
-<!-- - Removal of triangles that are outside the constraint contour. -->
-<!-- - Adding control points into constraint triangulation. -->
+- Removal of triangles that are outside the constraint contour.
 
 ### Changes
 
-- Uses "rect-triangles" instead of "supra-triangles" for stability. This can prevent some points from excluding when the min and max rect is large.
+- Uses "rect-triangles" instead of "supra-triangles" for stability. This can prevent some points from being excluded when the min and max rect is large.
 
 ## [0.3.0]
 

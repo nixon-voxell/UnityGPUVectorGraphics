@@ -7,7 +7,7 @@ namespace Voxell.GPUVectorGraphics
 {
   public static partial class CDT
   {
-    private const float MARGIN = 1.0f;
+    private const float MARGIN = 10.0f;
 
     public static JobHandle ConstraintTriangulate(
       float2 minRect, float2 maxRect, in float2[] points, in ContourPoint[] contours,
@@ -47,6 +47,72 @@ namespace Voxell.GPUVectorGraphics
     }
 
     #region Helper Functions
+    /// <summary>
+    /// Find the other triangle that is connected to this edge by looking up
+    /// at a hash map from any of the point related to the edge.
+    /// </summary>
+    private static void FindEdgeTriangleAndExtraPoint(
+      in NativeMultiHashMap<int, int>.Enumerator enumarator,
+      in NativeList<int> na_triangles,
+      in Edge edge, out int2 tris, out int2 extraPoints)
+    {
+      int foundCount = 0;
+      tris = new int2(-1, -1);
+      extraPoints = new int2(-1, -1);
+
+      int t0, t1, t2;
+      foreach (int t in enumarator)
+      {
+        GetTriangleIndices(in na_triangles, t, out t0, out t1, out t2);
+        Edge edge0 = new Edge(t0, t1);
+        Edge edge1 = new Edge(t1, t2);
+        Edge edge2 = new Edge(t2, t0);
+
+        if (edge.Equals(edge0) || edge.Equals(edge1) || edge.Equals(edge2))
+        {
+          if (foundCount > 1) UnityEngine.Debug.Log($"{edge.e0}, {edge.e1}");
+          if (foundCount > 1) UnityEngine.Debug.Log(t);
+          if (foundCount > 1) UnityEngine.Debug.Log($"{t0}, {t1}, {t2}");
+          if (foundCount > 1) return;
+          tris[foundCount] = t;
+
+          // find the odd one out (the point that is not related to the given edge)
+          if (t0 != edge.e0 && t0 != edge.e1) extraPoints[foundCount] = t0;
+          else if (t1 != edge.e0 && t1 != edge.e1) extraPoints[foundCount] = t1;
+          else extraPoints[foundCount] = t2;
+
+          foundCount++;
+        }
+      }
+    }
+    /// <summary>
+    /// Find the other triangle that is connected to this edge by looking up
+    /// at a hash map from any of the point related to the edge.
+    /// </summary>
+    /// <param name="enumarator"></param>
+    /// <param name="na_triangles"></param>
+    /// <param name="edgeTri"></param>
+    private static void FindEdgeTriangle(
+      in NativeMultiHashMap<int, int>.Enumerator enumarator,
+      in NativeList<int> na_triangles,
+      in Edge edge, out int2 tris)
+    {
+      int foundCount = 0;
+      tris = new int2(-1, -1);
+
+      int t0, t1, t2;
+      foreach (int t in enumarator)
+      {
+        GetTriangleIndices(in na_triangles, t, out t0, out t1, out t2);
+        Edge edge0 = new Edge(t0, t1);
+        Edge edge1 = new Edge(t1, t2);
+        Edge edge2 = new Edge(t2, t0);
+
+        if (edge.Equals(edge0) || edge.Equals(edge1) || edge.Equals(edge2))
+          tris[foundCount++] = t;
+      }
+    }
+
     /// <summary>Checks if an edge intersects a triangle.</summary>
     /// <param name="na_points">point pool</param>
     /// <param name="tIdx">triangle index</param>

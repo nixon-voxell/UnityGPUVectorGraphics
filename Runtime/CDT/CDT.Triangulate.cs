@@ -69,7 +69,7 @@ namespace Voxell.GPUVectorGraphics
           int removeCount = 0;
           for (int c=0; c < circumCount; c++)
           {
-            Circumcenter circumcenter = na_circumcenters[c - removeCount];
+            Circumcenter circumcenter = na_circumcenters[c-removeCount];
             if (circumcenter.ContainsPoint(point))
             {
               int t0, t1, t2;
