@@ -1,3 +1,7 @@
+## [0.4.0]
+
+### New Features
+
 ## [0.3.1]
 
 ### New Features
