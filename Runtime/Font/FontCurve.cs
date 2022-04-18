@@ -7,10 +7,10 @@ namespace Voxell.GPUVectorGraphics.Font
     public Glyph[] Glyphs => _glyphs;
 
     /// <summary>Bezier contour for each character.</summary>
-    [SerializeField] private Glyph[] _glyphs;
+    [SerializeField, NonReorderable] private Glyph[] _glyphs;
 
     /// <summary>Mapping index for each characters.</summary>
-    [SerializeField] private int[] _charMap;
+    [SerializeField, NonReorderable] private int[] _charMap;
 
     public void Initialize(Glyph[] glyphs, int[] charMap)
     {

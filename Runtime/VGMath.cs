@@ -49,7 +49,7 @@ namespace Voxell.GPUVectorGraphics
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal static bool IsClockwise(in float2 p0, in float2 p1, in float2 p2)
     {
-      return (p1.x - p0.x) * (p2.y - p0.y) - (p2.x - p0.x) * (p1.y - p0.y) < 0;
+      return (p1.x - p0.x) * (p2.y - p0.y) - (p2.x - p0.x) * (p1.y - p0.y) < 0.0f;
     }
   }
 }
