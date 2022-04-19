@@ -385,7 +385,7 @@ namespace Voxell.GPUVectorGraphics
           }
         }
 
-        // remove blacklisted triangles
+        // remove black listed triangles
         RemoveBlacklistedTriangles(in na_blackListedTris, ref na_repairTriangles);
 
         // add remaining triangles to the main triangle pool
