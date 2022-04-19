@@ -32,32 +32,15 @@ namespace Voxell.GPUVectorGraphics
 
       public void Execute()
       {
-        int pointCount = na_points.Length;
-
         // create temp arrays
         NativeList<Edge> na_edges = new NativeList<Edge>(Allocator.Temp);
-        NativeList<Edge> na_blackListedEdges = new NativeList<Edge>(Allocator.Temp);
+        NativeList<int> na_blackListedEdges = new NativeList<int>(Allocator.Temp);
         NativeList<Circumcenter> na_circumcenters = new NativeList<Circumcenter>(Allocator.Temp);
 
         // create rect-triangle
-        float2 marginedMinRect = minRect - MARGIN;
-        float2 marginedMaxRect = maxRect + MARGIN;
+        CreateRectTriangle(in minRect, in maxRect, ref na_points, ref na_triangles, ref na_circumcenters);
 
-        na_points[pointCount-4] = marginedMinRect;
-        na_points[pointCount-3] = new float2(marginedMinRect.x, marginedMaxRect.y);
-        na_points[pointCount-2] = marginedMaxRect;
-        na_points[pointCount-1] = new float2(marginedMaxRect.x, marginedMinRect.y);
-
-        AddTriAndCircum(
-          in na_points, ref na_triangles, ref na_circumcenters,
-          pointCount-4, pointCount-3, pointCount-2
-        );
-        AddTriAndCircum(
-          in na_points, ref na_triangles, ref na_circumcenters,
-          pointCount-4, pointCount-2, pointCount-1
-        );
-
-        for (int p=0, originPointCount=pointCount-4; p < originPointCount; p++)
+        for (int p=0, pointCount=na_points.Length-4; p < pointCount; p++)
         {
           na_edges.Clear();
           na_blackListedEdges.Clear();
@@ -65,62 +48,54 @@ namespace Voxell.GPUVectorGraphics
           float2 point = na_points[p];
 
           // remove triangles that contains the current point in its circumcenter
-          int circumCount = na_circumcenters.Length;
-          int removeCount = 0;
-          for (int c=0; c < circumCount; c++)
           {
-            Circumcenter circumcenter = na_circumcenters[c-removeCount];
-            if (circumcenter.ContainsPoint(point))
+            int removeCount = 0;
+            for (int c=0, circumCount=na_circumcenters.Length; c < circumCount; c++)
             {
-              int t0, t1, t2;
-              GetTriangleIndices(in na_triangles, c-removeCount, out t0, out t1, out t2);
-
-              Edge edge = new Edge(t0, t1);
-              if (na_edges.Contains(edge))
+              int idx = c - removeCount;
+              Circumcenter circumcenter = na_circumcenters[idx];
+              if (circumcenter.ContainsPoint(point))
               {
-                if (!na_blackListedEdges.Contains(edge))
-                  na_blackListedEdges.Add(edge);
-              } else na_edges.Add(edge);
+                int t0, t1, t2;
+                GetTriangleIndices(in na_triangles, idx, out t0, out t1, out t2);
 
-              edge.SetEdge(t1, t2);
-              if (na_edges.Contains(edge))
-              {
-                if (!na_blackListedEdges.Contains(edge))
-                  na_blackListedEdges.Add(edge);
-              } else na_edges.Add(edge);
+                Edge edge = new Edge(t0, t1);
+                if (na_edges.Contains(edge))
+                {
+                  int edgeIdx = na_edges.IndexOf(edge);
+                  if (!na_blackListedEdges.Contains(edgeIdx))
+                    na_blackListedEdges.Add(edgeIdx);
+                } else na_edges.Add(edge);
 
-              edge.SetEdge(t2, t0);
-              if (na_edges.Contains(edge))
-              {
-                if (!na_blackListedEdges.Contains(edge))
-                  na_blackListedEdges.Add(edge);
-              } else na_edges.Add(edge);
+                edge.SetEdge(t1, t2);
+                if (na_edges.Contains(edge))
+                {
+                  int edgeIdx = na_edges.IndexOf(edge);
+                  if (!na_blackListedEdges.Contains(edgeIdx))
+                    na_blackListedEdges.Add(edgeIdx);
+                } else na_edges.Add(edge);
 
-              RemoveTriAndCircum(ref na_circumcenters, ref na_triangles, c-removeCount++);
-            }
-          }
+                edge.SetEdge(t2, t0);
+                if (na_edges.Contains(edge))
+                {
+                  int edgeIdx = na_edges.IndexOf(edge);
+                  if (!na_blackListedEdges.Contains(edgeIdx))
+                    na_blackListedEdges.Add(edgeIdx);
+                } else na_edges.Add(edge);
 
-          int edgeCount;
-          int blackListedEdgeCount = na_blackListedEdges.Length;
-          for (int b=0; b < blackListedEdgeCount; b++)
-          {
-            Edge blackListedEdge = na_blackListedEdges[b];
-            edgeCount = na_edges.Length;
-
-            for (int e=0; e < edgeCount; e++)
-            {
-              if (na_edges[e].Equals(blackListedEdge))
-              {
-                na_edges.RemoveAt(e);
-                break;
+                RemoveTriAndCircum(ref na_circumcenters, ref na_triangles, idx);
+                removeCount++;
               }
             }
           }
 
-          // create new triangles out of it by connecting
-          // each new edges to the current point
-          edgeCount = na_edges.Length;
-          for (int e=0; e < edgeCount; e++)
+          // remove blacklisted edges
+          na_blackListedEdges.Sort();
+          RemoveBlacklistedEdges(in na_blackListedEdges, ref na_edges);
+
+          // create new triangles out of the current point
+          // by connecting each new edges to the current point
+          for (int e=0, edgeCount=na_edges.Length; e < edgeCount; e++)
           {
             Edge edge = na_edges[e];
             if (edge.e0 == p || edge.e1 == p) continue;
@@ -128,29 +103,14 @@ namespace Voxell.GPUVectorGraphics
             float2 p1 = na_points[edge.e1];
 
             if (VGMath.IsClockwise(in point, in p0, in p1))
-              AddTriAndCircum(
-                in na_points, ref na_triangles, ref na_circumcenters, p, edge.e0, edge.e1
-              );
+              AddTriAndCircum(in na_points, ref na_triangles, ref na_circumcenters, p, edge.e0, edge.e1);
             else
-              AddTriAndCircum(
-                in na_points, ref na_triangles, ref na_circumcenters, p, edge.e1, edge.e0
-              );
+              AddTriAndCircum(in na_points, ref na_triangles, ref na_circumcenters, p, edge.e1, edge.e0);
           }
         }
 
-        // remove rect-triangle
-        for (int p=pointCount-4; p < pointCount; p++)
-        {
-          int circumCount = na_circumcenters.Length;
-          int removeCount = 0;
-          for (int c=0; c < circumCount; c++)
-          {
-            int t0, t1, t2;
-            GetTriangleIndices(in na_triangles, c-removeCount, out t0, out t1, out t2);
-            if (t0 == p || t1 == p || t2 == p)
-              RemoveTriAndCircum(ref na_circumcenters, ref na_triangles, c-removeCount++);
-          }
-        }
+        // remove all triangles associated with the rect-triangle
+        RemoveRectTriangle(na_points.Length, ref na_triangles);
 
         // dispose temp arrays
         na_edges.Dispose();

@@ -39,12 +39,9 @@ namespace Voxell.GPUVectorGraphics
           Edge edge2 = new Edge(t2, t0);
 
           // make sure no duplicate edges are added
-          if (!na_edges.Contains(edge0))
-            na_edges.Add(edge0);
-          if (!na_edges.Contains(edge1))
-            na_edges.Add(edge1);
-          if (!na_edges.Contains(edge2))
-            na_edges.Add(edge2);
+          if (!na_edges.Contains(edge0)) na_edges.Add(edge0);
+          if (!na_edges.Contains(edge1)) na_edges.Add(edge1);
+          if (!na_edges.Contains(edge2)) na_edges.Add(edge2);
         }
 
         NativeList<int> na_insideIndices = new NativeList<int>(2, Allocator.Temp);
@@ -57,7 +54,6 @@ namespace Voxell.GPUVectorGraphics
         NativeList<Circumcenter> na_repairCircumcenters = new NativeList<Circumcenter>(Allocator.Temp);
 
         int segmentCount = na_contours.Length - 1;
-        int removeCount = 0;
         for (int s=0; s < segmentCount; s++)
         {
           na_insideIndices.Clear();
@@ -112,7 +108,7 @@ namespace Voxell.GPUVectorGraphics
           }
 
           // remove all black listed triangles
-          removeCount = 0;
+          int removeCount = 0;
           for (int t=0, blackListedTriCount=na_blackListedTris.Length; t < blackListedTriCount; t++)
             RemoveTriangle(ref na_triangles, na_blackListedTris[t]-removeCount++);
 
@@ -193,8 +189,9 @@ namespace Voxell.GPUVectorGraphics
           }
         }
 
-        // =======================================================================================
-        // remove triangles that are not connected to any contour edge and is outside the contour
+        /// remove triangles that are not connected to
+        /// any contour edge and is outside the contour
+        ////////////////////////////////////////////////////////////////////////////////
         NativeArray<Edge> na_contourEdges = new NativeArray<Edge>(na_contours.Length, Allocator.Temp);
 
         for (int s=0; s < segmentCount; s++)
@@ -204,48 +201,52 @@ namespace Voxell.GPUVectorGraphics
           na_contours[segmentCount].pointIdx, na_contours[0].pointIdx
         );
 
-        removeCount = 0;
-        for (int t=0, triangleCount=na_triangles.Length/3; t < triangleCount; t++)
         {
-          int t0, t1, t2;
-          GetTriangleIndices(in na_triangles, t-removeCount, out t0, out t1, out t2);
-
-          Edge edge0 = new Edge(t0, t1);
-          Edge edge1 = new Edge(t1, t2);
-          Edge edge2 = new Edge(t2, t0);
-
-          NativeMultiHashMap<int, int>.Enumerator enum0 = na_pointTriMap.GetValuesForKey(t0);
-          NativeMultiHashMap<int, int>.Enumerator enum1 = na_pointTriMap.GetValuesForKey(t1);
-          NativeMultiHashMap<int, int>.Enumerator enum2 = na_pointTriMap.GetValuesForKey(t2);
-          int2 tris0, tris1, tris2;
-          FindEdgeTriangle(in enum0, in na_triangles, in edge0, out tris0);
-          FindEdgeTriangle(in enum1, in na_triangles, in edge1, out tris1);
-          FindEdgeTriangle(in enum2, in na_triangles, in edge2, out tris2);
-
-          // triangles that are not connected to any contour
-          if (
-            !na_contourEdges.Contains(edge0) &&
-            !na_contourEdges.Contains(edge1) &&
-            !na_contourEdges.Contains(edge2)
-          )
+          int removeCount = 0;
+          for (int t=0, triangleCount=na_triangles.Length/3; t < triangleCount; t++)
           {
+            int t0, t1, t2;
+            GetTriangleIndices(in na_triangles, t-removeCount, out t0, out t1, out t2);
+
+            Edge edge0 = new Edge(t0, t1);
+            Edge edge1 = new Edge(t1, t2);
+            Edge edge2 = new Edge(t2, t0);
+
+            NativeMultiHashMap<int, int>.Enumerator enum0 = na_pointTriMap.GetValuesForKey(t0);
+            NativeMultiHashMap<int, int>.Enumerator enum1 = na_pointTriMap.GetValuesForKey(t1);
+            NativeMultiHashMap<int, int>.Enumerator enum2 = na_pointTriMap.GetValuesForKey(t2);
+            int2 tris0, tris1, tris2;
+            FindEdgeTriangles(in enum0, in na_triangles, in edge0, out tris0);
+            FindEdgeTriangles(in enum1, in na_triangles, in edge1, out tris1);
+            FindEdgeTriangles(in enum2, in na_triangles, in edge2, out tris2);
+
+            // triangles that are not connected to any contour
             if (
-              na_blackListedTris.Contains(tris0[0]) || na_blackListedTris.Contains(tris0[1]) ||
-              na_blackListedTris.Contains(tris1[0]) || na_blackListedTris.Contains(tris1[1]) ||
-              na_blackListedTris.Contains(tris2[0]) || na_blackListedTris.Contains(tris2[1])
-            ) na_blackListedTris.Add(t);
+              !na_contourEdges.Contains(edge0) &&
+              !na_contourEdges.Contains(edge1) &&
+              !na_contourEdges.Contains(edge2)
+            )
+            {
+              if (
+                na_blackListedTris.Contains(tris0[0]) || na_blackListedTris.Contains(tris0[1]) ||
+                na_blackListedTris.Contains(tris1[0]) || na_blackListedTris.Contains(tris1[1]) ||
+                na_blackListedTris.Contains(tris2[0]) || na_blackListedTris.Contains(tris2[1])
+              ) na_blackListedTris.Add(t);
+            }
           }
         }
 
         // sort indices so that we remove the triangles with the lowest indices first
         na_blackListedTris.Sort();
         // remove all black listed triangles
-        removeCount = 0;
-        for (int t=0, blackListedTriCount=na_blackListedTris.Length; t < blackListedTriCount; t++)
-          RemoveTriangle(ref na_triangles, na_blackListedTris[t]-removeCount++);
+        {
+          int removeCount = 0;
+          for (int t=0, blackListedTriCount=na_blackListedTris.Length; t < blackListedTriCount; t++)
+            RemoveTriangle(ref na_triangles, na_blackListedTris[t]-removeCount++);
+        }
 
-        // =======================================================================================
         // disposing all temp allocations
+        ////////////////////////////////////////////////////////////////////////////////
         na_edges.Dispose();
 
         na_insideIndices.Dispose();
@@ -275,28 +276,11 @@ namespace Voxell.GPUVectorGraphics
         na_repairTriangles.Clear();
         na_repairCircumcenters.Clear();
         na_blackListedTris.Clear();
-        int pointCount = na_points.Length;
         int idxCount = na_indices.Length;
 
         // create rect-triangle
-        float2 marginedMinRect = minRect - MARGIN;
-        float2 marginedMaxRect = maxRect + MARGIN;
+        CreateRectTriangle(in minRect, in maxRect, ref na_points, ref na_repairTriangles, ref na_repairCircumcenters);
 
-        na_points[pointCount-4] = marginedMinRect;
-        na_points[pointCount-3] = new float2(marginedMinRect.x, marginedMaxRect.y);
-        na_points[pointCount-2] = marginedMaxRect;
-        na_points[pointCount-1] = new float2(marginedMaxRect.x, marginedMinRect.y);
-
-        AddTriAndCircum(
-          in na_points, ref na_repairTriangles, ref na_repairCircumcenters,
-          pointCount-4, pointCount-3, pointCount-2
-        );
-        AddTriAndCircum(
-          in na_points, ref na_repairTriangles, ref na_repairCircumcenters,
-          pointCount-4, pointCount-2, pointCount-1
-        );
-
-        int removeCount = 0;
         for (int i=0; i < idxCount; i++)
         {
           na_repairEdges.Clear();
@@ -307,14 +291,15 @@ namespace Voxell.GPUVectorGraphics
 
           // remove triangles that contains the current point in its circumcenter
           int circumCount = na_repairCircumcenters.Length;
-          removeCount = 0;
+          int removeCount = 0;
           for (int c=0; c < circumCount; c++)
           {
-            Circumcenter circumcenter = na_repairCircumcenters[c - removeCount];
+            int cIdx = c-removeCount;
+            Circumcenter circumcenter = na_repairCircumcenters[cIdx];
             if (circumcenter.ContainsPoint(point))
             {
               int t0, t1, t2;
-              GetTriangleIndices(in na_repairTriangles, c-removeCount, out t0, out t1, out t2);
+              GetTriangleIndices(in na_repairTriangles, cIdx, out t0, out t1, out t2);
 
               Edge edge = new Edge(t0, t1);
               if (na_repairEdges.Contains(edge))
@@ -337,16 +322,16 @@ namespace Voxell.GPUVectorGraphics
                   na_blackListedRepairEdges.Add(edge);
               } else na_repairEdges.Add(edge);
 
-              RemoveTriAndCircum(ref na_repairCircumcenters, ref na_repairTriangles, c-removeCount++);
+              RemoveTriAndCircum(ref na_repairCircumcenters, ref na_repairTriangles, cIdx);
+              removeCount++;
             }
           }
 
-          int edgeCount;
           int blackListedEdgeCount = na_blackListedRepairEdges.Length;
           for (int b=0; b < blackListedEdgeCount; b++)
           {
             Edge blackListedEdge = na_blackListedRepairEdges[b];
-            edgeCount = na_repairEdges.Length;
+            int edgeCount = na_repairEdges.Length;
 
             for (int e=0; e < edgeCount; e++)
             {
@@ -360,8 +345,7 @@ namespace Voxell.GPUVectorGraphics
 
           // create new triangles out of it by connecting
           // each new edges to the current point
-          edgeCount = na_repairEdges.Length;
-          for (int e=0; e < edgeCount; e++)
+          for (int e=0, edgeCount=na_repairEdges.Length; e < edgeCount; e++)
           {
             Edge edge = na_repairEdges[e];
             if (edge.e0 == pIdx || edge.e1 == pIdx) continue;
@@ -380,21 +364,11 @@ namespace Voxell.GPUVectorGraphics
         }
 
         // remove rect-triangle
-        for (int p=pointCount-4; p < pointCount; p++)
-        {
-          int triCount = na_repairTriangles.Length/3;
-          removeCount = 0;
-          for (int t=0; t < triCount; t++)
-          {
-            int t0, t1, t2;
-            GetTriangleIndices(in na_repairTriangles, t-removeCount, out t0, out t1, out t2);
-            if (t0 == p || t1 == p || t2 == p)
-              RemoveTriangle(ref na_repairTriangles, t-removeCount++);
-          }
-        }
+        RemoveRectTriangle(na_points.Length, ref na_repairTriangles);
 
-        // remove points that are overlapping other existing triangles
-        for (int rt=0, repairTriCount=na_repairTriangles.Length/3; rt < repairTriCount; rt++)
+        // remove triangles that are overlapping other existing triangles
+        int repairTriCount=na_repairTriangles.Length/3;
+        for (int rt=0; rt < repairTriCount; rt++)
         {
           int t0, t1, t2;
           GetTriangleIndices(in na_repairTriangles, rt, out t0, out t1, out t2);
@@ -411,10 +385,10 @@ namespace Voxell.GPUVectorGraphics
           }
         }
 
-        removeCount = 0;
-        for (int t=0, blacklistedTriCount=na_blackListedTris.Length; t < blacklistedTriCount; t++)
-          RemoveTriangle(ref na_repairTriangles, na_blackListedTris[t]-removeCount++);
+        // remove blacklisted triangles
+        RemoveBlacklistedTriangles(in na_blackListedTris, ref na_repairTriangles);
 
+        // add remaining triangles to the main triangle pool
         na_triangles.AddRange(na_repairTriangles);
       }
     }
