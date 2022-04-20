@@ -3,7 +3,7 @@
 ### Changes
 
 - Major code refactoring for CDT triangulation and constraint:
-  - Genralize procedures into static function calls.
+  - Generalize procedures into static function calls.
   - Create functions to prevent repetitive code.
 - CDT utility functions are now separated into 3 files:
   - `CDT.Util` for general utility purposes.

@@ -4,6 +4,8 @@
 
 This is a GPU accelerated vector graphics library built specifially for the Unity3D engine.
 
+You can find the example project [here](https://github.com/nixon-voxell/UnityGPUVectorGraphicsExamples).
+
 - [Unity GPU Vector Graphics](#unity-gpu-vector-graphics)
   - [Installation](#installation)
   - [Support the project!](#support-the-project)
