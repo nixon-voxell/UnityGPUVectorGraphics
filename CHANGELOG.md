@@ -1,3 +1,19 @@
+## [0.3.2]
+
+### Changes
+
+- Major code refactoring for CDT triangulation and constraint:
+  - Genralize procedures into static function calls.
+  - Create functions to prevent repetitive code.
+- CDT utility functions are now separated into 3 files:
+  - `CDT.Util` for general utility purposes.
+  - `CDT.TriangulationUtil` for delaunay triangulation utility purposes.
+  - `CDT.ConstraintUtil` for constrained delaunay triangulation utility purposes.
+
+### Bug Fixes
+
+- Removed `Debug.Log` calls from a static function that is being called in a burst compiled code.
+
 ## [0.3.1]
 
 ### New Features
@@ -12,7 +28,7 @@
 
 ### New Features
 
-- Implementation of constraint delaunay triangulation.
+- Implementation of constrained delaunay triangulation.
 
 ### Changes
 

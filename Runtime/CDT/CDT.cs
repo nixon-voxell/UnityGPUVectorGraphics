@@ -1,4 +1,3 @@
-using System.Runtime.CompilerServices;
 using Unity.Mathematics;
 using Unity.Collections;
 using Unity.Jobs;
@@ -9,6 +8,15 @@ namespace Voxell.GPUVectorGraphics
   {
     private const float MARGIN = 10.0f;
 
+    /// <summary>Constraint delaunay triangulation based on a contour.</summary>
+    /// <param name="minRect">minimum point of the point set</param>
+    /// <param name="maxRect">maximum point of the point set</param>
+    /// <param name="points">points to be triangulated</param>
+    /// <param name="contours">contour defining the polygon boundary</param>
+    /// <param name="na_points">a copy of the input point array</param>
+    /// <param name="na_triangles">output of the final triangle list</param>
+    /// <param name="na_contours">a copy of the input contour array</param>
+    /// <returns></returns>
     public static JobHandle ConstraintTriangulate(
       float2 minRect, float2 maxRect, in float2[] points, in ContourPoint[] contours,
       out NativeArray<float2> na_points, out NativeList<int> na_triangles,
@@ -45,158 +53,5 @@ namespace Voxell.GPUVectorGraphics
       );
       return job_triangulate.Schedule();
     }
-
-    #region Helper Functions
-    /// <summary>
-    /// Find the other triangle that is connected to this edge by looking up
-    /// at a hash map from any of the point related to the edge.
-    /// </summary>
-    private static void FindEdgeTriangleAndExtraPoint(
-      in NativeMultiHashMap<int, int>.Enumerator enumarator,
-      in NativeList<int> na_triangles,
-      in Edge edge, out int2 tris, out int2 extraPoints)
-    {
-      int foundCount = 0;
-      tris = new int2(-1, -1);
-      extraPoints = new int2(-1, -1);
-
-      int t0, t1, t2;
-      foreach (int t in enumarator)
-      {
-        GetTriangleIndices(in na_triangles, t, out t0, out t1, out t2);
-        Edge edge0 = new Edge(t0, t1);
-        Edge edge1 = new Edge(t1, t2);
-        Edge edge2 = new Edge(t2, t0);
-
-        if (edge.Equals(edge0) || edge.Equals(edge1) || edge.Equals(edge2))
-        {
-          if (foundCount > 1) UnityEngine.Debug.Log($"{edge.e0}, {edge.e1}");
-          if (foundCount > 1) UnityEngine.Debug.Log(t);
-          if (foundCount > 1) UnityEngine.Debug.Log($"{t0}, {t1}, {t2}");
-          if (foundCount > 1) return;
-          tris[foundCount] = t;
-
-          // find the odd one out (the point that is not related to the given edge)
-          if (t0 != edge.e0 && t0 != edge.e1) extraPoints[foundCount] = t0;
-          else if (t1 != edge.e0 && t1 != edge.e1) extraPoints[foundCount] = t1;
-          else extraPoints[foundCount] = t2;
-
-          foundCount++;
-        }
-      }
-    }
-    /// <summary>
-    /// Find the other triangle that is connected to this edge by looking up
-    /// at a hash map from any of the point related to the edge.
-    /// </summary>
-    /// <param name="enumarator"></param>
-    /// <param name="na_triangles"></param>
-    /// <param name="edgeTri"></param>
-    private static void FindEdgeTriangle(
-      in NativeMultiHashMap<int, int>.Enumerator enumarator,
-      in NativeList<int> na_triangles,
-      in Edge edge, out int2 tris)
-    {
-      int foundCount = 0;
-      tris = new int2(-1, -1);
-
-      int t0, t1, t2;
-      foreach (int t in enumarator)
-      {
-        GetTriangleIndices(in na_triangles, t, out t0, out t1, out t2);
-        Edge edge0 = new Edge(t0, t1);
-        Edge edge1 = new Edge(t1, t2);
-        Edge edge2 = new Edge(t2, t0);
-
-        if (edge.Equals(edge0) || edge.Equals(edge1) || edge.Equals(edge2))
-          tris[foundCount++] = t;
-      }
-    }
-
-    /// <summary>Checks if an edge intersects a triangle.</summary>
-    /// <param name="na_points">point pool</param>
-    /// <param name="tIdx">triangle index</param>
-    /// <param name="edge">edge indices</param>
-    /// <param name="ePoints">2 points that makes up the edge</param>
-    /// <param name="diff_t">if triangle point is part of the edge</param>
-    /// <param name="tPoints">triangle points</param>
-    /// <returns></returns>
-    private static bool TriEdgeIntersect(
-      in NativeArray<float2> na_points,
-      in int3 tIdx, in Edge edge, in float2x2 ePoints,
-      out bool3 diff_t, out float2x3 tPoints
-    )
-    {
-      diff_t = new bool3();
-      tPoints = new float2x3();
-      for (int i=0; i < 3; i++)
-      {
-        diff_t[i] = !(tIdx[i] == edge.e0 || tIdx[i] == edge.e1);
-        tPoints[i] = na_points[tIdx[i]];
-      }
-
-      // only check for edge intersection when both edge are not connected
-      // return a true, if either one of it intersects
-      for (int i=0; i < 3; i++)
-      {
-        int nextIdx = (i + 1) % 3;
-        if (diff_t[i] && diff_t[nextIdx])
-          if (VGMath.LinesIntersect(tPoints[i], tPoints[nextIdx], ePoints[0], ePoints[1]))
-            return true;
-      }
-
-      return false;
-    }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static void GetTriangleIndices(
-      in NativeList<int> na_triangles,
-      int idx, out int t0, out int t1, out int t2
-    )
-    {
-      int tIdx = idx*3;
-      t0 = na_triangles[tIdx];
-      t1 = na_triangles[tIdx + 1];
-      t2 = na_triangles[tIdx + 2];
-    }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static void AddTriangle(ref NativeList<int> na_triangles, int t0, int t1, int t2)
-    {
-      na_triangles.Add(t0);
-      na_triangles.Add(t1);
-      na_triangles.Add(t2);
-    }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static void RemoveTriangle(ref NativeList<int> na_triangles, int idx)
-    {
-      int tIdx = idx*3;
-      na_triangles.RemoveRange(tIdx, 3);
-    }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static void AddTriAndCircum(
-      in NativeArray<float2> na_points, ref NativeList<int> na_triangles,
-      ref NativeList<Circumcenter> na_circumcenters,
-      int t0, int t1, int t2
-    )
-    {
-      AddTriangle(ref na_triangles, t0, t1, t2);
-      float2 p0 = na_points[t0];
-      float2 p1 = na_points[t1];
-      float2 p2 = na_points[t2];
-      na_circumcenters.Add(new Circumcenter(p0, p1, p2));
-    }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static void RemoveTriAndCircum(
-      ref NativeList<Circumcenter> na_circumcenters, ref NativeList<int> na_triangles, int idx
-    )
-    {
-      RemoveTriangle(ref na_triangles, idx);
-      na_circumcenters.RemoveAt(idx);
-    }
-    #endregion
   }
 }

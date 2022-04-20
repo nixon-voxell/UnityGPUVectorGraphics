@@ -3,12 +3,14 @@ using System.IO;
 using UnityEngine;
 using UnityEditor.AssetImporters;
 using Unity.Mathematics;
+using Unity.Collections;
+using Unity.Jobs;
 
 namespace Voxell.GPUVectorGraphics.Font
 {
   using Inspector;
 
-  [ScriptedImporter(1,  new[] { "ttfvector", "otfVector" }, new[] { "ttf", "otf" })]
+  [ScriptedImporter(2,  new[] { "ttfvector", "otfVector" }, new[] { "ttf", "otf" })]
   public class FontImporter : ScriptedImporter
   {
     /// <summary>Format of the font.</summary>
@@ -71,7 +73,7 @@ namespace Voxell.GPUVectorGraphics.Font
         _tableMap.Add(table.tag, table);
       }
 
-      // head will tell us all table offset information
+      /// head will tell us all table offset information
       ////////////////////////////////////////////////////////////////////////////////
       #region Head
       if (!_tableMap.TryGetValue(Head.TagName, out table))
@@ -87,7 +89,7 @@ namespace Voxell.GPUVectorGraphics.Font
       offsetByteWidth = head.OffsetByteWidth;
       #endregion
 
-      // maxp will tell us how many glyphs there are in the file
+      /// maxp will tell us how many glyphs there are in the file
       ////////////////////////////////////////////////////////////////////////////////
       #region Maxp
       if (!_tableMap.TryGetValue(Maxp.TagName, out table))
@@ -102,7 +104,7 @@ namespace Voxell.GPUVectorGraphics.Font
       glyphCount = maxP.numGlyphs;
       #endregion
 
-      // loca knows offsets of glyphs in the glyf table
+      /// loca knows offsets of glyphs in the glyf table
       ////////////////////////////////////////////////////////////////////////////////
       #region Loca
       if (!_tableMap.TryGetValue(Loca.TagName, out table))
@@ -116,7 +118,7 @@ namespace Voxell.GPUVectorGraphics.Font
       loca.Read(fontReader, glyphCount, offsetByteWidth == 4);
       #endregion
 
-      // glyf provides contour data
+      /// glyf provides contour data
       ////////////////////////////////////////////////////////////////////////////////
       #region Glyf
       if (!_tableMap.TryGetValue(Glyf.TagName, out table))
@@ -232,8 +234,8 @@ namespace Voxell.GPUVectorGraphics.Font
       }
       #endregion
 
-      // cmap tells us the mapping between character codes and glyph indices
-      // used throughout the font file
+      /// cmap tells us the mapping between
+      /// character codes and glyph indices used throughout the font file
       ////////////////////////////////////////////////////////////////////////////////
       #region cmap
       if (!_tableMap.TryGetValue(CMap.TagName, out table))
@@ -269,6 +271,128 @@ namespace Voxell.GPUVectorGraphics.Font
       FontCurve fontCurve = ScriptableObject.CreateInstance<FontCurve>();
       fontCurve.Initialize(glyphs, charMap);
       ctx.AddObjectToAsset("FontCurve", fontCurve);
+
+      /// create mesh for each char
+      ////////////////////////////////////////////////////////////////////////////////
+      HashSet<int> glyphSet = new HashSet<int>();
+      Dictionary<int, int> glyphMap = new Dictionary<int, int>();
+      for (int c=0; c < charMap.Length; c++)
+      {
+        glyphSet.Add(charMap[c]);
+        glyphMap.TryAdd(charMap[c], c);
+      }
+
+      int glyphSetCount = glyphSet.Count;
+      // convert set into array
+      int[] glyphSetArray = new int[glyphSetCount];
+      glyphSet.CopyTo(glyphSetArray);
+
+      Mesh[] meshes = new Mesh[glyphSetCount];
+      NativeArray<JobHandle> jobHandles = new NativeArray<JobHandle>(glyphSetCount, Allocator.Temp);
+
+      NativeArray<float2>[] na_points_array =
+        new NativeArray<float2>[glyphSetCount];
+      NativeList<int>[] na_triangles_array =
+        new NativeList<int>[glyphSetCount];
+      NativeArray<CDT.ContourPoint>[] na_contours_array =
+        new NativeArray<CDT.ContourPoint>[glyphSetCount];
+
+      for (int g=0; g < glyphSetCount; g++)
+      {
+        int gIdx = glyphSetArray[g];
+
+        Glyph glyph = glyphs[gIdx];
+        if (glyph.contours == null) continue;
+        int contourCount = glyph.contours.Length;
+        if (contourCount == 0) continue;
+
+        float2[] points;
+        CDT.ContourPoint[] contours;
+        GenerateMeshDataFromGlyph(in glyph, out points, out contours);
+
+        float2 maxRect = glyph.maxRect;
+        float2 minRect = glyph.minRect;
+        jobHandles[g] = CDT.ConstraintTriangulate(
+          minRect, maxRect, in points, in contours,
+          out na_points_array[g],
+          out na_triangles_array[g],
+          out na_contours_array[g]
+        );
+      }
+
+      // make sure that all the scheduled jobs are completed
+      JobHandle.CompleteAll(jobHandles);
+
+      for (int g=0; g < glyphSetCount; g++)
+      {
+        int gIdx = glyphSetArray[g];
+        if (!na_points_array[g].IsCreated) continue;
+        Glyph glyph = glyphs[gIdx];
+
+        string name = ((char)glyphMap[gIdx]).ToString();
+        Mesh mesh = new Mesh();
+        mesh.name = name;
+        mesh.SetVertices(PointsToVertices(in na_points_array[g]));
+        mesh.SetIndices<int>(na_triangles_array[g], MeshTopology.Triangles, 0);
+        mesh.RecalculateNormals();
+        mesh.RecalculateTangents();
+
+        float3 maxRect = new float3(glyph.maxRect, 0.0f);
+        float3 minRect = new float3(glyph.minRect, 0.0f);
+        float3 size = maxRect - minRect;
+        float3 center = minRect + size*0.5f;
+        mesh.bounds = new Bounds(center, size);
+
+        ctx.AddObjectToAsset(name, mesh);
+      }
+
+      // dispose all allocated arrays
+      jobHandles.Dispose();
+      for (int g=0; g < glyphSetCount; g++)
+      {
+        if(na_points_array[g].IsCreated)
+          na_points_array[g].Dispose();
+        if(na_triangles_array[g].IsCreated)
+          na_triangles_array[g].Dispose();
+        if(na_contours_array[g].IsCreated)
+          na_contours_array[g].Dispose();
+      }
+    }
+
+    private void GenerateMeshDataFromGlyph(
+      in Glyph glyph, out float2[] points, out CDT.ContourPoint[] contours
+    )
+    {
+      int contourCount = glyph.contours.Length;
+      List<float2> pointList = new List<float2>();
+      List<CDT.ContourPoint> contourList = new List<CDT.ContourPoint>();
+
+      int contourStart = 0;
+      for (int c=0; c < contourCount; c++)
+      {
+        QuadraticContour glyphContour = glyph.contours[c];
+        int segmentCount = glyphContour.segments.Length;
+
+        for (int s=0; s < segmentCount; s++)
+        {
+          pointList.Add(glyphContour.segments[s].p0);
+          contourList.Add(new CDT.ContourPoint(contourStart+s, c));
+        }
+        contourList.Add(new CDT.ContourPoint(contourStart, c));
+        contourStart += segmentCount;
+      }
+
+      points = pointList.ToArray();
+      contours = contourList.ToArray();
+    }
+
+    private Vector3[] PointsToVertices(in NativeArray<float2> points)
+    {
+      Vector3[] vertices = new Vector3[points.Length];
+      for (int p=0; p < points.Length; p++)
+        vertices[p] = new Vector3(points[p].x, points[p].y, 0.0f);
+
+      return vertices;
     }
   }
 }
