@@ -49,7 +49,7 @@ namespace Voxell.GPUVectorGraphics
         NativeList<int> na_blackListedTris = new NativeList<int>(Allocator.Temp);
 
         NativeList<Edge> na_repairEdges = new NativeList<Edge>(Allocator.Temp);
-        NativeList<Edge> na_blackListedRepairEdges = new NativeList<Edge>(Allocator.Temp);
+        NativeList<int> na_blackListedRepairEdges = new NativeList<int>(Allocator.Temp);
         NativeList<int> na_repairTriangles = new NativeList<int>(Allocator.Temp);
         NativeList<Circumcenter> na_repairCircumcenters = new NativeList<Circumcenter>(Allocator.Temp);
 
@@ -117,9 +117,8 @@ namespace Voxell.GPUVectorGraphics
           {
             TriangulatePoints(
               in minRect, in maxRect, in na_insideIndices,
-              ref na_repairEdges, ref na_blackListedRepairEdges,
-              ref na_repairTriangles, ref na_repairCircumcenters,
-              ref na_blackListedTris
+              ref na_repairEdges, ref na_repairTriangles, ref na_repairCircumcenters,
+              ref na_blackListedRepairEdges, ref na_blackListedTris
             );
           }
 
@@ -128,9 +127,8 @@ namespace Voxell.GPUVectorGraphics
           {
             TriangulatePoints(
               in minRect, in maxRect, in na_outsideIndices,
-              ref na_repairEdges, ref na_blackListedRepairEdges,
-              ref na_repairTriangles, ref na_repairCircumcenters,
-              ref na_blackListedTris
+              ref na_repairEdges, ref na_repairTriangles, ref na_repairCircumcenters,
+              ref na_blackListedRepairEdges, ref na_blackListedTris
             );
           }
         }
@@ -267,9 +265,9 @@ namespace Voxell.GPUVectorGraphics
       private void TriangulatePoints(
         in float2 minRect, in float2 maxRect, in NativeList<int> na_indices,
         ref NativeList<Edge> na_repairEdges,
-        ref NativeList<Edge> na_blackListedRepairEdges,
         ref NativeList<int> na_repairTriangles,
         ref NativeList<Circumcenter> na_repairCircumcenters,
+        ref NativeList<int> na_blackListedRepairEdges,
         ref NativeList<int> na_blackListedTris
       )
       {
@@ -290,9 +288,8 @@ namespace Voxell.GPUVectorGraphics
           float2 point = na_points[pIdx];
 
           // remove triangles that contains the current point in its circumcenter
-          int circumCount = na_repairCircumcenters.Length;
           int removeCount = 0;
-          for (int c=0; c < circumCount; c++)
+          for (int c=0, circumCount=na_repairCircumcenters.Length; c < circumCount; c++)
           {
             int cIdx = c-removeCount;
             Circumcenter circumcenter = na_repairCircumcenters[cIdx];
@@ -302,65 +299,29 @@ namespace Voxell.GPUVectorGraphics
               GetTriangleIndices(in na_repairTriangles, cIdx, out t0, out t1, out t2);
 
               Edge edge = new Edge(t0, t1);
-              if (na_repairEdges.Contains(edge))
-              {
-                if (!na_blackListedRepairEdges.Contains(edge))
-                  na_blackListedRepairEdges.Add(edge);
-              } else na_repairEdges.Add(edge);
+              AddEdgesOfRemovedTriangle(in edge, ref na_repairEdges, ref na_blackListedRepairEdges);
 
               edge.SetEdge(t1, t2);
-              if (na_repairEdges.Contains(edge))
-              {
-                if (!na_blackListedRepairEdges.Contains(edge))
-                  na_blackListedRepairEdges.Add(edge);
-              } else na_repairEdges.Add(edge);
+              AddEdgesOfRemovedTriangle(in edge, ref na_repairEdges, ref na_blackListedRepairEdges);
 
               edge.SetEdge(t2, t0);
-              if (na_repairEdges.Contains(edge))
-              {
-                if (!na_blackListedRepairEdges.Contains(edge))
-                  na_blackListedRepairEdges.Add(edge);
-              } else na_repairEdges.Add(edge);
+              AddEdgesOfRemovedTriangle(in edge, ref na_repairEdges, ref na_blackListedRepairEdges);
 
               RemoveTriAndCircum(ref na_repairCircumcenters, ref na_repairTriangles, cIdx);
               removeCount++;
             }
           }
 
-          int blackListedEdgeCount = na_blackListedRepairEdges.Length;
-          for (int b=0; b < blackListedEdgeCount; b++)
-          {
-            Edge blackListedEdge = na_blackListedRepairEdges[b];
-            int edgeCount = na_repairEdges.Length;
-
-            for (int e=0; e < edgeCount; e++)
-            {
-              if (na_repairEdges[e].Equals(blackListedEdge))
-              {
-                na_repairEdges.RemoveAt(e);
-                break;
-              }
-            }
-          }
+          // sort black listed edge indices in ascending order and remove them
+          na_blackListedRepairEdges.Sort();
+          RemoveBlacklistedEdges(in na_blackListedRepairEdges, ref na_repairEdges);
 
           // create new triangles out of it by connecting
           // each new edges to the current point
-          for (int e=0, edgeCount=na_repairEdges.Length; e < edgeCount; e++)
-          {
-            Edge edge = na_repairEdges[e];
-            if (edge.e0 == pIdx || edge.e1 == pIdx) continue;
-            float2 p0 = na_points[edge.e0];
-            float2 p1 = na_points[edge.e1];
-
-            if (VGMath.IsClockwise(in point, in p0, in p1))
-              AddTriAndCircum(
-                in na_points, ref na_repairTriangles, ref na_repairCircumcenters, pIdx, edge.e0, edge.e1
-              );
-            else
-              AddTriAndCircum(
-                in na_points, ref na_repairTriangles, ref na_repairCircumcenters, pIdx, edge.e1, edge.e0
-              );
-          }
+          CreateTrianglesForNewPoint(
+            in pIdx, in point, in na_repairEdges, in na_points,
+            ref na_repairTriangles, ref na_repairCircumcenters
+          );
         }
 
         // remove rect-triangle
