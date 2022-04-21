@@ -25,8 +25,8 @@ namespace Voxell.GPUVectorGraphics
     {
       na_contours = new NativeArray<ContourPoint>(contours, Allocator.TempJob);
       JobHandle jobHandle = Triangulate(minRect, maxRect, in points, out na_points, out na_triangles);
-      ConstraintJob job_constraint = new ConstraintJob(ref na_contours, ref na_points, ref na_triangles);
-      return job_constraint.Schedule(jobHandle);
+      ConstrainJob job_constrain = new ConstrainJob(ref na_contours, ref na_points, ref na_triangles);
+      return job_constrain.Schedule(jobHandle);
     }
 
     /// <summary>Performs a delaunay triangulation on a set of points.</summary>

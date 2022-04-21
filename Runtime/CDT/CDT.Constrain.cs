@@ -10,13 +10,13 @@ namespace Voxell.GPUVectorGraphics
   public partial class CDT
   {
     [BurstCompile]
-    private struct ConstraintJob : IJob
+    private struct ConstrainJob : IJob
     {
       public NativeArray<ContourPoint> na_contours;
       public NativeArray<float2> na_points;
       public NativeList<int> na_triangles;
 
-      public ConstraintJob(
+      public ConstrainJob(
         ref NativeArray<ContourPoint> na_contours,
         ref NativeArray<float2> na_points, ref NativeList<int> na_triangles
       )
