@@ -4,7 +4,7 @@
 
 This is a GPU accelerated vector graphics library built specifially for the Unity3D engine.
 
-You can find the example project [here](https://github.com/nixon-voxell/UnityGPUVectorGraphicsExamples).
+You can find the example repository [here](https://github.com/nixon-voxell/UnityGPUVectorGraphicsExamples).
 
 - [Unity GPU Vector Graphics](#unity-gpu-vector-graphics)
   - [Installation](#installation)
@@ -36,7 +36,11 @@ External dependencies:
 ## Join the community!
 
 <a href ="https://discord.gg/WDBnuNH" target="_blank">
-  <img src="https://gist.githubusercontent.com/nixon-voxell/e7ba303906080ffdf65b106f684801b5/raw/65b0338d5f4e82f700d3c9f14ec9fc62f3fd278e/JoinVXDiscord.svg" alt="discord" width="200px" height="200px"/>
+  <img src="https://gist.githubusercontent.com/nixon-voxell/e7ba303906080ffdf65b106f684801b5/raw/97c6dfce3459c0a2c2ea8e1b9593612346f3abfc/JoinVXDiscord.svg" alt="discord" width="200px" height="200px"/>
+</a>
+
+<a href ="https://discord.gg/X3ZucbxXFc" target="_blank">
+  <img src="https://gist.githubusercontent.com/nixon-voxell/e7ba303906080ffdf65b106f684801b5/raw/97c6dfce3459c0a2c2ea8e1b9593612346f3abfc/JoinVXGithubDiscord.svg" alt="discord" width="200px" height="200px"/>
 </a>
 
 
