@@ -308,7 +308,7 @@ namespace Voxell.GPUVectorGraphics.Font
 
         float2[] points;
         CDT.ContourPoint[] contours;
-        GenerateMeshDataFromGlyph(in glyph, out points, out contours);
+        ExtractGlyphData(in glyph, out points, out contours);
 
         float2 maxRect = glyph.maxRect;
         float2 minRect = glyph.minRect;
@@ -359,7 +359,8 @@ namespace Voxell.GPUVectorGraphics.Font
       }
     }
 
-    private void GenerateMeshDataFromGlyph(
+    /// <summary>Convert glyphs into points and contours.</summary>
+    private void ExtractGlyphData(
       in Glyph glyph, out float2[] points, out CDT.ContourPoint[] contours
     )
     {

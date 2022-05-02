@@ -1,3 +1,9 @@
+## [0.4.0]
+
+### Changes
+
+- Renamed `GenerateMeshDataFromGlyph` to `ExtractGlyphData`.
+
 ## [0.3.2]
 
 ### Changes
