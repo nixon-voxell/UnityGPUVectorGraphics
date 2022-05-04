@@ -57,7 +57,6 @@ namespace Voxell.GPUVectorGraphics
           {
             int idx = c - removeCount;
             Circumcenter circumcenter = na_circumcenters[idx];
-            circumcenter.sqradius += 0.001f;
             if (circumcenter.ContainsPoint(point))
             {
               int t0, t1, t2;

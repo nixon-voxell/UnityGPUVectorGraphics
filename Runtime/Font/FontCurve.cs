@@ -8,7 +8,7 @@ namespace Voxell.GPUVectorGraphics.Font
 {
   public class FontCurve : ScriptableObject
   {
-    public const float ENLARGE = 10.0f;
+    public const float ENLARGE = 100.0f;
     public const float INV_ENLARGE = 1/ENLARGE;
     public Glyph[] Glyphs => _glyphs;
     public int[] CharCodes => _charCodes;
