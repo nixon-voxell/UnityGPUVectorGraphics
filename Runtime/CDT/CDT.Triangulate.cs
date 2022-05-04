@@ -47,6 +47,10 @@ namespace Voxell.GPUVectorGraphics
 
           float2 point = na_points[p];
 
+          // prevent duplicated points (only triangulate the first point found)
+          int tempIdx = na_points.IndexOf(point);
+          if (tempIdx != p) continue;
+
           // remove triangles that contains the current point in its circumcenter
           int removeCount = 0;
           for (int c=0, circumCount=na_circumcenters.Length; c < circumCount; c++)
