@@ -30,7 +30,7 @@ namespace Voxell.GPUVectorGraphics
       float u = (dot11 * dot02 - dot01 * dot12) * inverseDenominator;
       float v = (dot00 * dot12 - dot01 * dot02) * inverseDenominator;
 
-      return (u > 0.0f) && (v > 0.0f) && (u + v < 1.0f);
+      return (u >= 0.0f) && (v >= 0.0f) && (u + v <= 1.0f);
     }
 
     internal static bool LinesIntersect(float2 p1, float2 q1, float2 p2, float2 q2)

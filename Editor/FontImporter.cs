@@ -309,18 +309,22 @@ namespace Voxell.GPUVectorGraphics.Font
         CDT.ContourPoint[] contours;
         FontCurve.ExtractGlyphData(in glyph, out points, out contours);
 
-        float2 maxRect = glyph.maxRect;
-        float2 minRect = glyph.minRect;
+        float2 maxRect = glyph.maxRect * FontCurve.ENLARGE;
+        float2 minRect = glyph.minRect * FontCurve.ENLARGE;
         jobHandles[k] = CDT.ConstraintTriangulate(
           minRect, maxRect, in points, in contours,
           out na_points_array[k],
           out na_triangles_array[k],
           out na_contours_array[k]
         );
+
+        Debug.Log(glyphIndices[k]);
+        Debug.Log((char)charCodes[k]);
+        jobHandles[k].Complete();
       }
 
       // make sure that all the scheduled jobs are completed
-      JobHandle.CompleteAll(jobHandles);
+      // JobHandle.CompleteAll(jobHandles);
 
       for (int k=0; k < keyCount; k++)
       {

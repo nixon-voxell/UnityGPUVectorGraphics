@@ -29,7 +29,11 @@ namespace Voxell.GPUVectorGraphics
 
         if (edge.Equals(edge0) || edge.Equals(edge1) || edge.Equals(edge2))
         {
-          // UnityEngine.Debug.Log($"{foundCount}: {t0}, {t1}, {t2}");
+          if (foundCount == 2)
+          {
+            UnityEngine.Debug.Log($"{foundCount}: {t0}, {t1}, {t2}");
+            UnityEngine.Debug.Log($"edge: {edge.e0}:{edge.e1}");
+          }
           tris[foundCount] = t;
 
           // find the odd one out (the point that is not related to the given edge)
@@ -65,7 +69,11 @@ namespace Voxell.GPUVectorGraphics
 
         if (edge.Equals(edge0) || edge.Equals(edge1) || edge.Equals(edge2))
         {
-          // UnityEngine.Debug.Log($"{foundCount}: {t0}, {t1}, {t2}");
+          if (foundCount == 2)
+          {
+            UnityEngine.Debug.Log($"{foundCount}: {t0}, {t1}, {t2}");
+            UnityEngine.Debug.Log($"edge: {edge.e0}:{edge.e1}");
+          }
           tris[foundCount++] = t;
         }
       }

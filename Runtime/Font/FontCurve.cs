@@ -8,9 +8,11 @@ namespace Voxell.GPUVectorGraphics.Font
 {
   public class FontCurve : ScriptableObject
   {
-    // public const float ENLARGE = 1.0f;
-    // public const float INV_ENLARGE = 1/ENLARGE;
+    public const float ENLARGE = 10.0f;
+    public const float INV_ENLARGE = 1/ENLARGE;
     public Glyph[] Glyphs => _glyphs;
+    public int[] CharCodes => _charCodes;
+    public int[] GlyphIndices => _glyphIndices;
 
     /// <summary>Bezier contour for each character.</summary>
     [SerializeField, NonReorderable] private Glyph[] _glyphs;
@@ -85,7 +87,7 @@ namespace Voxell.GPUVectorGraphics.Font
 
         for (int s=0; s < segmentCount; s++)
         {
-          pointList.Add(glyphContour.segments[s].p0);
+          pointList.Add(glyphContour.segments[s].p0 * ENLARGE);
           contourList.Add(new CDT.ContourPoint(contourStart+s, c));
         }
         contourList.Add(new CDT.ContourPoint(contourStart, c));
@@ -101,7 +103,7 @@ namespace Voxell.GPUVectorGraphics.Font
       Vector3[] vertices = new Vector3[points.Length];
       for (int p=0; p < points.Length; p++)
       {
-        float2 point = points[p];
+        float2 point = points[p] * INV_ENLARGE;
         vertices[p] = new Vector3(point.x, point.y, 0.0f);
       }
 
