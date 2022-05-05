@@ -7,6 +7,7 @@
 ### Bug Fixes
 
 - `PointInTriangle` method in `VGMath` is much more accurate (to handle edge cases) and computationally cheap.
+- Removed addition of `EPSILON` to `div` in `Cirumcircle` to prevent numerical inaccuracy.
 
 ## [0.3.2]
 
