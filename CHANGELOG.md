@@ -4,6 +4,10 @@
 
 - Renamed `GenerateMeshDataFromGlyph` to `ExtractGlyphData`.
 
+### Bug Fixes
+
+- `PointInTriangle` method in `VGMath` is much more accurate (to handle edge cases) and computationally cheap.
+
 ## [0.3.2]
 
 ### Changes
