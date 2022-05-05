@@ -5,35 +5,38 @@ namespace Voxell.GPUVectorGraphics
 {
   public partial class CDT
   {
-    /// <summary>Create rect-triangles using the last 4 elements of the point array.</summary>
-    private static void CreateRectTriangle(
+    /// <summary>Create super-triangle using the last 3 elements of the point array.</summary>
+    private static void CreateSuperTriangle(
       in float2 minRect, in float2 maxRect,
       ref NativeArray<float2> na_points,
       ref NativeList<int> na_triangles,
-      ref NativeList<Circumcenter> na_circumcenters
+      ref NativeList<Cirumcircle> na_cirumcircles
     )
     {
       int pointCount = na_points.Length;
-      float2 marginedMinRect = minRect - MARGIN;
-      float2 marginedMaxRect = maxRect + MARGIN;
-      int r0 = pointCount-4;
-      int r1 = pointCount-3;
-      int r2 = pointCount-2;
-      int r3 = pointCount-1;
+      float width = maxRect.x - minRect.x;
+      float height = maxRect.y - minRect.y;
+      float marginedWidth = width + MARGIN;
+      float marginedHeight = height + MARGIN;
 
-      na_points[r0] = marginedMinRect;
-      na_points[r1] = new float2(marginedMinRect.x, marginedMaxRect.y);
-      na_points[r2] = marginedMaxRect;
-      na_points[r3] = new float2(marginedMaxRect.x, marginedMinRect.y);
+      int r0 = pointCount-3;
+      int r1 = pointCount-2;
+      int r2 = pointCount-1;
 
-      AddTriAndCircum(in na_points, ref na_triangles, ref na_circumcenters, r0, r1, r2);
-      AddTriAndCircum(in na_points, ref na_triangles, ref na_circumcenters, r0, r2, r3);
+      // left bottom
+      na_points[r0] = new float2(minRect.x - marginedWidth, minRect.y - marginedHeight);
+      // right bottom
+      na_points[r1] = new float2(maxRect.x + marginedWidth, minRect.y - marginedHeight);
+      // top
+      na_points[r2] = new float2(minRect.x + width*0.5f, maxRect.y + marginedHeight);
+
+      AddTriAndCircum(in na_points, ref na_triangles, ref na_cirumcircles, r0, r1, r2);
     }
 
-    /// <summary>Remove all triangles associated with the rect-triangle.</summary>
-    private static void RemoveRectTriangle(in int pointCount, ref NativeList<int> na_triangles)
+    /// <summary>Remove all triangles associated with the super-triangle.</summary>
+    private static void RemoveSuperTriangle(in int pointCount, ref NativeList<int> na_triangles)
     {
-      for (int p=pointCount-4; p < pointCount; p++)
+      for (int p=pointCount-3; p < pointCount; p++)
       {
         int triangleCount = na_triangles.Length/3;
         int removeCount = 0;
@@ -58,7 +61,7 @@ namespace Voxell.GPUVectorGraphics
     private static void CreateTrianglesForNewPoint(
       in int pointIdx, in float2 point,
       in NativeList<Edge> na_edges, in NativeArray<float2> na_points,
-      ref NativeList<int> na_triangles, ref NativeList<Circumcenter> na_circumcenters
+      ref NativeList<int> na_triangles, ref NativeList<Cirumcircle> na_cirumcircles
     )
     {
       int edgeCount = na_edges.Length;
@@ -70,9 +73,9 @@ namespace Voxell.GPUVectorGraphics
         float2 p1 = na_points[edge.e1];
 
         if (VGMath.IsClockwise(in point, in p0, in p1))
-          AddTriAndCircum(in na_points, ref na_triangles, ref na_circumcenters, pointIdx, edge.e0, edge.e1);
+          AddTriAndCircum(in na_points, ref na_triangles, ref na_cirumcircles, pointIdx, edge.e0, edge.e1);
         else
-          AddTriAndCircum(in na_points, ref na_triangles, ref na_circumcenters, pointIdx, edge.e1, edge.e0);
+          AddTriAndCircum(in na_points, ref na_triangles, ref na_cirumcircles, pointIdx, edge.e1, edge.e0);
       }
     }
 

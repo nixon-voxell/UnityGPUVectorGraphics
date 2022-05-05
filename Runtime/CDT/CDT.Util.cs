@@ -36,7 +36,7 @@ namespace Voxell.GPUVectorGraphics
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static void AddTriAndCircum(
       in NativeArray<float2> na_points, ref NativeList<int> na_triangles,
-      ref NativeList<Circumcenter> na_circumcenters,
+      ref NativeList<Cirumcircle> na_cirumcircles,
       int t0, int t1, int t2
     )
     {
@@ -44,16 +44,16 @@ namespace Voxell.GPUVectorGraphics
       float2 p0 = na_points[t0];
       float2 p1 = na_points[t1];
       float2 p2 = na_points[t2];
-      na_circumcenters.Add(new Circumcenter(p0, p1, p2));
+      na_cirumcircles.Add(new Cirumcircle(p0, p1, p2));
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static void RemoveTriAndCircum(
-      ref NativeList<Circumcenter> na_circumcenters, ref NativeList<int> na_triangles, int idx
+      ref NativeList<Cirumcircle> na_cirumcircles, ref NativeList<int> na_triangles, int idx
     )
     {
       RemoveTriangle(ref na_triangles, idx);
-      na_circumcenters.RemoveAt(idx);
+      na_cirumcircles.RemoveAt(idx);
     }
   }
 }

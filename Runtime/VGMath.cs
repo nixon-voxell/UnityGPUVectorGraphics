@@ -6,32 +6,27 @@ namespace Voxell.GPUVectorGraphics
   internal static class VGMath
   {
     /// <summary>Determines if a point is inside a triangle.</summary>
-    internal static bool PointInTriangle(
-      float2 point, float2 a, float2 b, float2 c
-    )
+    /// <remarks>
+    /// https://stackoverflow.com/questions/2049582/how-to-determine-if-a-point-is-in-a-2d-triangle
+    /// </remarks>
+    internal static bool PointInTriangle(float2 p, float2 p0, float2 p1, float2 p2)
     {
-      float2 p0 = c - a;
-      float2 p1 = b - a;
-      float2 p2 = point - a;
+      float d1, d2, d3;
+      bool hasNeg, hasPos;
 
-      float dot00 = math.dot(p0, p0);
-      float dot01 = math.dot(p0, p1);
-      float dot02 = math.dot(p0, p2);
-      float dot11 = math.dot(p1, p1);
-      float dot12 = math.dot(p1, p2);
-      float denominator = dot00 * dot11 - dot01 * dot01;
+      d1 = VertEdgeSign(p, p0, p1);
+      d2 = VertEdgeSign(p, p1, p2);
+      d3 = VertEdgeSign(p, p2, p0);
 
-      // triangle has zero-area
-      // treat query point as not being inside
-      if (denominator == 0.0f) return false;
+      hasNeg = (d1 < 0.0f) || (d2 < 0.0f) || (d3 < 0.0f);
+      hasPos = (d1 > 0.0f) || (d2 > 0.0f) || (d3 > 0.0f);
 
-      // compute
-      float inverseDenominator = 1.0f / denominator;
-      float u = (dot11 * dot02 - dot01 * dot12) * inverseDenominator;
-      float v = (dot00 * dot12 - dot01 * dot02) * inverseDenominator;
-
-      return (u > 0.0f) && (v > 0.0f) && (u + v < 1.0f);
+      return !(hasNeg && hasPos);
     }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    internal static float VertEdgeSign(float2 p, float2 p0, float2 p1)
+      => (p.x - p1.x) * (p0.y - p1.y) - (p0.x - p1.x) * (p.y - p1.y);
 
     internal static bool LinesIntersect(float2 p1, float2 q1, float2 p2, float2 q2)
     {

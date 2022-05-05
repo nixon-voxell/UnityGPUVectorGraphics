@@ -10,7 +10,7 @@ namespace Voxell.GPUVectorGraphics
     /// at a hash map from any of the point related to the edge.
     /// </summary>
     private static void FindEdgeTriangleAndExtraPoint(
-      in NativeMultiHashMap<int, int>.Enumerator enumarator,
+      in NativeMultiHashMap<int, int>.Enumerator enumerator,
       in NativeList<int> na_triangles,
       in Edge edge, out int2 tris, out int2 extraPoints)
     {
@@ -18,8 +18,9 @@ namespace Voxell.GPUVectorGraphics
       tris = new int2(-1, -1);
       extraPoints = new int2(-1, -1);
 
+      // UnityEngine.Debug.Log($"edge: {edge.e0}:{edge.e1}");
       int t0, t1, t2;
-      foreach (int t in enumarator)
+      foreach (int t in enumerator)
       {
         GetTriangleIndices(in na_triangles, t, out t0, out t1, out t2);
         Edge edge0 = new Edge(t0, t1);
@@ -28,6 +29,11 @@ namespace Voxell.GPUVectorGraphics
 
         if (edge.Equals(edge0) || edge.Equals(edge1) || edge.Equals(edge2))
         {
+          if (foundCount == 2)
+          {
+            UnityEngine.Debug.Log($"{foundCount}: {t0}, {t1}, {t2}");
+            UnityEngine.Debug.Log($"edge: {edge.e0}:{edge.e1}");
+          }
           tris[foundCount] = t;
 
           // find the odd one out (the point that is not related to the given edge)
@@ -45,15 +51,16 @@ namespace Voxell.GPUVectorGraphics
     /// at a hash map from any of the point related to the edge.
     /// </summary>
     private static void FindEdgeTriangles(
-      in NativeMultiHashMap<int, int>.Enumerator enumarator,
+      in NativeMultiHashMap<int, int>.Enumerator enumerator,
       in NativeList<int> na_triangles,
       in Edge edge, out int2 tris)
     {
       int foundCount = 0;
       tris = new int2(-1, -1);
 
+      // UnityEngine.Debug.Log($"edge: {edge.e0}:{edge.e1}");
       int t0, t1, t2;
-      foreach (int t in enumarator)
+      foreach (int t in enumerator)
       {
         GetTriangleIndices(in na_triangles, t, out t0, out t1, out t2);
         Edge edge0 = new Edge(t0, t1);
@@ -61,7 +68,14 @@ namespace Voxell.GPUVectorGraphics
         Edge edge2 = new Edge(t2, t0);
 
         if (edge.Equals(edge0) || edge.Equals(edge1) || edge.Equals(edge2))
+        {
+          if (foundCount == 2)
+          {
+            UnityEngine.Debug.Log($"{foundCount}: {t0}, {t1}, {t2}");
+            UnityEngine.Debug.Log($"edge: {edge.e0}:{edge.e1}");
+          }
           tris[foundCount++] = t;
+        }
       }
     }
 
@@ -72,7 +86,6 @@ namespace Voxell.GPUVectorGraphics
     /// <param name="ePoints">2 points that makes up the edge</param>
     /// <param name="diff_t">if triangle point is part of the edge</param>
     /// <param name="tPoints">triangle points</param>
-    /// <returns></returns>
     private static bool TriEdgeIntersect(
       in NativeArray<float2> na_points,
       in int3 tIdx, in Edge edge, in float2x2 ePoints,
@@ -83,8 +96,11 @@ namespace Voxell.GPUVectorGraphics
       tPoints = new float2x3();
       for (int i=0; i < 3; i++)
       {
-        diff_t[i] = !(tIdx[i] == edge.e0 || tIdx[i] == edge.e1);
         tPoints[i] = na_points[tIdx[i]];
+        // compare point position rather than index
+        // as there might be duplicated points with different index
+        bool same = (tPoints[i].Equals(ePoints[0]) || tPoints[i].Equals(ePoints[1]));
+        diff_t[i] = !same;
       }
 
       // only check for edge intersection when both edge are not connected
