@@ -8,7 +8,7 @@ namespace Voxell.GPUVectorGraphics
   public partial class CDT
   {
     /// <summary>Bowyer-Watson delaunay triangulation.</summary>
-    [BurstCompile]
+    [BurstCompile(FloatPrecision.High, FloatMode.Strict)]
     private struct TriangulateJob : IJob
     {
       public float2 minRect;
@@ -35,12 +35,14 @@ namespace Voxell.GPUVectorGraphics
         // create temp arrays
         NativeList<Edge> na_edges = new NativeList<Edge>(Allocator.Temp);
         NativeList<int> na_blackListedEdges = new NativeList<int>(Allocator.Temp);
-        NativeList<Circumcenter> na_circumcenters = new NativeList<Circumcenter>(Allocator.Temp);
+        NativeList<Cirumcircle> na_cirumcircles = new NativeList<Cirumcircle>(Allocator.Temp);
 
         // create rect-triangle
-        CreateRectTriangle(in minRect, in maxRect, ref na_points, ref na_triangles, ref na_circumcenters);
+        // CreateRectTriangle(in minRect, in maxRect, ref na_points, ref na_triangles, ref na_cirumcircles);
+        // create super-triangle
+        CreateSuperTriangle(in minRect, in maxRect, ref na_points, ref na_triangles, ref na_cirumcircles);
 
-        for (int p=0, pointCount=na_points.Length-4; p < pointCount; p++)
+        for (int p=0, pointCount=na_points.Length-3; p < pointCount; p++)
         {
           na_edges.Clear();
           na_blackListedEdges.Clear();
@@ -53,10 +55,10 @@ namespace Voxell.GPUVectorGraphics
 
           // remove triangles that contains the current point in its circumcenter
           int removeCount = 0;
-          for (int c=0, circumCount=na_circumcenters.Length; c < circumCount; c++)
+          for (int c=0, circumCount=na_cirumcircles.Length; c < circumCount; c++)
           {
             int idx = c - removeCount;
-            Circumcenter circumcenter = na_circumcenters[idx];
+            Cirumcircle circumcenter = na_cirumcircles[idx];
             if (circumcenter.ContainsPoint(point))
             {
               int t0, t1, t2;
@@ -71,7 +73,7 @@ namespace Voxell.GPUVectorGraphics
               edge.SetEdge(t2, t0);
               AddEdgesOfRemovedTriangle(in edge, ref na_edges, ref na_blackListedEdges);
 
-              RemoveTriAndCircum(ref na_circumcenters, ref na_triangles, idx);
+              RemoveTriAndCircum(ref na_cirumcircles, ref na_triangles, idx);
               removeCount++;
             }
           }
@@ -84,17 +86,19 @@ namespace Voxell.GPUVectorGraphics
           // by connecting each new edges to the current point
           CreateTrianglesForNewPoint(
             in p, in point, in na_edges, in na_points,
-            ref na_triangles, ref na_circumcenters
+            ref na_triangles, ref na_cirumcircles
           );
         }
 
         // remove all triangles associated with the rect-triangle
-        RemoveRectTriangle(na_points.Length, ref na_triangles);
+        // RemoveRectTriangle(na_points.Length, ref na_triangles);
+        // remove all triangles associated with the super-triangle
+        RemoveSuperTriangle(na_points.Length, ref na_triangles);
 
         // dispose all temp allocations
         na_edges.Dispose();
         na_blackListedEdges.Dispose();
-        na_circumcenters.Dispose();
+        na_cirumcircles.Dispose();
       }
     }
   }

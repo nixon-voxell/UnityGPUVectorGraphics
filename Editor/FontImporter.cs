@@ -10,7 +10,7 @@ namespace Voxell.GPUVectorGraphics.Font
 {
   using Inspector;
 
-  [ScriptedImporter(2,  new[] { "ttfvector", "otfVector" }, new[] { "ttf", "otf" })]
+  [ScriptedImporter(3,  new[] { "ttfvector", "otfVector" }, new[] { "ttf", "otf" })]
   public class FontImporter : ScriptedImporter
   {
     /// <summary>Format of the font.</summary>
@@ -282,7 +282,6 @@ namespace Voxell.GPUVectorGraphics.Font
       fontReader.Close();
 
       FontCurve fontCurve = ScriptableObject.CreateInstance<FontCurve>();
-      fontCurve.Initialize(glyphs, charCodes, glyphIndices);
       ctx.AddObjectToAsset("FontCurve", fontCurve);
 
       /// create mesh for each char
@@ -309,8 +308,8 @@ namespace Voxell.GPUVectorGraphics.Font
         CDT.ContourPoint[] contours;
         FontCurve.ExtractGlyphData(in glyph, out points, out contours);
 
-        float2 maxRect = glyph.maxRect * FontCurve.ENLARGE;
-        float2 minRect = glyph.minRect * FontCurve.ENLARGE;
+        float2 maxRect = glyph.maxRect;
+        float2 minRect = glyph.minRect;
         jobHandles[k] = CDT.ConstraintTriangulate(
           minRect, maxRect, in points, in contours,
           out na_points_array[k],
@@ -345,8 +344,11 @@ namespace Voxell.GPUVectorGraphics.Font
         float3 center = minRect + size*0.5f;
         mesh.bounds = new Bounds(center, size);
 
+        meshes[k] = mesh;
         ctx.AddObjectToAsset(name, mesh);
       }
+
+      fontCurve.Initialize(glyphs, charCodes, glyphIndices, meshes);
 
       // dispose all allocated arrays
       jobHandles.Dispose();

@@ -48,7 +48,7 @@ namespace Voxell.GPUVectorGraphics
       public bool ContainsPoint(float2 p)
       {
         float sqlength = math.lengthsq(center - p);
-        return sqlength < (sqradius + math.EPSILON);
+        return sqlength < (sqradius + math.EPSILON*2.0f);
       }
     }
 

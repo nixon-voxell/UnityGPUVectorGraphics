@@ -86,7 +86,6 @@ namespace Voxell.GPUVectorGraphics
     /// <param name="ePoints">2 points that makes up the edge</param>
     /// <param name="diff_t">if triangle point is part of the edge</param>
     /// <param name="tPoints">triangle points</param>
-    /// <returns></returns>
     private static bool TriEdgeIntersect(
       in NativeArray<float2> na_points,
       in int3 tIdx, in Edge edge, in float2x2 ePoints,
@@ -97,8 +96,11 @@ namespace Voxell.GPUVectorGraphics
       tPoints = new float2x3();
       for (int i=0; i < 3; i++)
       {
-        diff_t[i] = !(tIdx[i] == edge.e0 || tIdx[i] == edge.e1);
         tPoints[i] = na_points[tIdx[i]];
+        // compare point position rather than index
+        // as there might be duplicated points with different index
+        bool same = (tPoints[i].Equals(ePoints[0]) || tPoints[i].Equals(ePoints[1]));
+        diff_t[i] = !same;
       }
 
       // only check for edge intersection when both edge are not connected

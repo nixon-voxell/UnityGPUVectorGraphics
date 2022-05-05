@@ -18,8 +18,8 @@ namespace Voxell.GPUVectorGraphics
       d2 = VertEdgeSign(p, p1, p2);
       d3 = VertEdgeSign(p, p2, p0);
 
-      hasNeg = (d1 < 0) || (d2 < 0) || (d3 < 0);
-      hasPos = (d1 > 0) || (d2 > 0) || (d3 > 0);
+      hasNeg = (d1 < 0.0f) || (d2 < 0.0f) || (d3 < 0.0f);
+      hasPos = (d1 > 0.0f) || (d2 > 0.0f) || (d3 > 0.0f);
 
       return !(hasNeg && hasPos);
     }

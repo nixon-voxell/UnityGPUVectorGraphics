@@ -8,8 +8,6 @@ namespace Voxell.GPUVectorGraphics.Font
 {
   public class FontCurve : ScriptableObject
   {
-    public const float ENLARGE = 100.0f;
-    public const float INV_ENLARGE = 1/ENLARGE;
     public Glyph[] Glyphs => _glyphs;
     public int[] CharCodes => _charCodes;
     public int[] GlyphIndices => _glyphIndices;
@@ -17,16 +15,19 @@ namespace Voxell.GPUVectorGraphics.Font
     /// <summary>Bezier contour for each character.</summary>
     [SerializeField, NonReorderable] private Glyph[] _glyphs;
 
-    /// <summary>Character codes.</summary>
+    /// <summary>Supported character codes.</summary>
     [SerializeField, NonReorderable] private int[] _charCodes;
-    /// <summary>Glyph index of the corresponding character.</summary>
+    /// <summary>Glyph indices of the corresponding character codes.</summary>
     [SerializeField, NonReorderable] private int[] _glyphIndices;
+    /// <summary>Meshes of the corresponding character glyph indices.</summary>
+    [SerializeField, NonReorderable] private Mesh[] _meshes;
 
-    public void Initialize(Glyph[] glyphs, int[] charCodes, int[] glyphIndices)
+    public void Initialize(Glyph[] glyphs, int[] charCodes, int[] glyphIndices, Mesh[] meshes)
     {
       _glyphs = glyphs;
       _charCodes = charCodes;
       _glyphIndices = glyphIndices;
+      _meshes = meshes;
     }
 
     /// <summary>Search for the glyph index of a certain character through binary search.</summary>
@@ -70,6 +71,14 @@ namespace Voxell.GPUVectorGraphics.Font
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Glyph GetCharacterGlyph(char character) => _glyphs[SearchGlyhIndex(character)];
 
+    /// <summary>Get character mesh through binary search.</summary>
+    /// <returns>
+    /// First mesh if character is not supported,
+    /// else the mesh representing the shape of the character
+    /// </returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public Mesh GetCharacterMesh(char character) => _meshes[SearchGlyhIndex(character)];
+
     /// <summary>Convert glyphs into points and contours.</summary>
     public static void ExtractGlyphData(
       in Glyph glyph, out float2[] points, out CDT.ContourPoint[] contours
@@ -87,7 +96,7 @@ namespace Voxell.GPUVectorGraphics.Font
 
         for (int s=0; s < segmentCount; s++)
         {
-          pointList.Add(glyphContour.segments[s].p0 * ENLARGE);
+          pointList.Add(glyphContour.segments[s].p0);
           contourList.Add(new CDT.ContourPoint(contourStart+s, c));
         }
         contourList.Add(new CDT.ContourPoint(contourStart, c));
@@ -103,7 +112,7 @@ namespace Voxell.GPUVectorGraphics.Font
       Vector3[] vertices = new Vector3[points.Length];
       for (int p=0; p < points.Length; p++)
       {
-        float2 point = points[p] * INV_ENLARGE;
+        float2 point = points[p];
         vertices[p] = new Vector3(point.x, point.y, 0.0f);
       }
 

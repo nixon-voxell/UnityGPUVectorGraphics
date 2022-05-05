@@ -9,7 +9,7 @@ namespace Voxell.GPUVectorGraphics
 
   public partial class CDT
   {
-    [BurstCompile]
+    [BurstCompile(FloatPrecision.High, FloatMode.Strict)]
     private struct ConstrainJob : IJob
     {
       public NativeArray<ContourPoint> na_contours;
@@ -51,7 +51,7 @@ namespace Voxell.GPUVectorGraphics
         NativeList<Edge> na_repairEdges = new NativeList<Edge>(Allocator.Temp);
         NativeList<int> na_blackListedRepairEdges = new NativeList<int>(Allocator.Temp);
         NativeList<int> na_repairTriangles = new NativeList<int>(Allocator.Temp);
-        NativeList<Circumcenter> na_repairCircumcenters = new NativeList<Circumcenter>(Allocator.Temp);
+        NativeList<Cirumcircle> na_repairCircumcenters = new NativeList<Cirumcircle>(Allocator.Temp);
 
         int segmentCount = na_contours.Length - 1;
         for (int s=0; s < segmentCount; s++)
@@ -108,9 +108,7 @@ namespace Voxell.GPUVectorGraphics
           }
 
           // remove all black listed triangles
-          int removeCount = 0;
-          for (int t=0, blackListedTriCount=na_blackListedTris.Length; t < blackListedTriCount; t++)
-            RemoveTriangle(ref na_triangles, na_blackListedTris[t]-removeCount++);
+          RemoveBlacklistedTriangles(in na_blackListedTris, ref na_triangles);
 
           // retriangulate inside points
           if (na_insideIndices.Length > 2)
@@ -133,8 +131,9 @@ namespace Voxell.GPUVectorGraphics
           }
         }
 
-        // =======================================================================================
-        // remove triangles connected to a contour edge and is outside the contour
+        // return;
+        /// remove triangles connected to a contour edge and is outside the contour
+        ////////////////////////////////////////////////////////////////////////////////
         NativeMultiHashMap<int, int> na_pointTriMap = new NativeMultiHashMap<int, int>(
           na_points.Length, Allocator.Temp
         );
@@ -266,7 +265,7 @@ namespace Voxell.GPUVectorGraphics
         in float2 minRect, in float2 maxRect, in NativeList<int> na_indices,
         ref NativeList<Edge> na_repairEdges,
         ref NativeList<int> na_repairTriangles,
-        ref NativeList<Circumcenter> na_repairCircumcenters,
+        ref NativeList<Cirumcircle> na_repairCircumcenters,
         ref NativeList<int> na_blackListedRepairEdges,
         ref NativeList<int> na_blackListedTris
       )
@@ -277,7 +276,9 @@ namespace Voxell.GPUVectorGraphics
         int idxCount = na_indices.Length;
 
         // create rect-triangle
-        CreateRectTriangle(in minRect, in maxRect, ref na_points, ref na_repairTriangles, ref na_repairCircumcenters);
+        // CreateRectTriangle(in minRect, in maxRect, ref na_points, ref na_repairTriangles, ref na_repairCircumcenters);
+        // create super-triangle
+        CreateSuperTriangle(in minRect, in maxRect, ref na_points, ref na_repairTriangles, ref na_repairCircumcenters);
 
         for (int i=0; i < idxCount; i++)
         {
@@ -292,7 +293,7 @@ namespace Voxell.GPUVectorGraphics
           for (int c=0, circumCount=na_repairCircumcenters.Length; c < circumCount; c++)
           {
             int cIdx = c-removeCount;
-            Circumcenter circumcenter = na_repairCircumcenters[cIdx];
+            Cirumcircle circumcenter = na_repairCircumcenters[cIdx];
             if (circumcenter.ContainsPoint(point))
             {
               int t0, t1, t2;
@@ -325,7 +326,9 @@ namespace Voxell.GPUVectorGraphics
         }
 
         // remove rect-triangle
-        RemoveRectTriangle(na_points.Length, ref na_repairTriangles);
+        // RemoveRectTriangle(na_points.Length, ref na_repairTriangles);
+        // remove super-triangle
+        RemoveSuperTriangle(na_points.Length, ref na_repairTriangles);
 
         // remove triangles that are overlapping other existing triangles
         int repairTriCount=na_repairTriangles.Length/3;

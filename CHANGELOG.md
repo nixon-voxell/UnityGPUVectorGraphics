@@ -1,13 +1,65 @@
-## [0.4.0]
+## [0.3.3]
+
+### New Features
+
+- `FontCurve` stores an array of precomputed meshes on import.
+- Implementation of binary search to search for character's glyph/mesh index.
 
 ### Changes
 
+- Burst Compile uses high precision float and strict float mode.
+- Reduced `MARGIN` from 10.0f to 1.0f.
+- Renamed `Circumcenter` to `Circumcircle`.
 - Renamed `GenerateMeshDataFromGlyph` to `ExtractGlyphData`.
+- Increased `FontImporter` verion from 2 to 3.
+- Instead of `charMaps`, `FontCurve` now stores 2 separate arrays:
+  - `charCodes`: an array of supported characters.
+  - `glyphIndices`: an array of glyph indices corresponding to the supported character codes.
+- Uses "super-triangle" instead of "rect-triangles" as there is an elegant way to create a huge triangle that encapsulates all points inside.
+  1. Calculate bounding-box (min/max rect) of the points.
+  2. Place the bounding-box on a line.
+   ```
+    __
+   |__|
+   ----
+   ```
+  3. Place 2 more of the same box at the top and bottom of the current box.
+   ```
+    __
+   |__|
+    __
+   |__|
+    __
+   |__|
+   ----
+   ```
+  4. Place another 2 more of the same box at the left and right of the bottom most box.
+   ```
+         __
+        |__|
+         __
+        |__|
+    __   __   __
+   |__| |__| |__|
+   --------------
+   ```
+  5. Now, connect the "left-bottom most" point, "right-bottom most" point, and the "middle-top-most" point together.
+   ```
+         __                 /\      
+        |__|               /__\     
+         __               / __ \    
+        |__|             / |__| \   
+    __   __   __       _/   __   \_ 
+   |__| |__| |__|     |/_| |__| |_\|
+   ----------------------------------
+   ```
+  6. And now you get a "super-triangle" that encapsulates all the points in the middle box! (of course, you can add some kind of margin to the box itself to enlarge the "super-triangle" just to make sure!)
 
 ### Bug Fixes
 
 - `PointInTriangle` method in `VGMath` is much more accurate (to handle edge cases) and computationally cheap.
 - Removed addition of `EPSILON` to `div` in `Cirumcircle` to prevent numerical inaccuracy.
+- `TriEdgeIntersect` method now checks for similarity based on point position rather than index as there might be duplicated points that have a different index.
 
 ## [0.3.2]
 
@@ -33,7 +85,7 @@
 
 ### Changes
 
-- Uses "rect-triangles" instead of "supra-triangles" for stability. This can prevent some points from being excluded when the min and max rect is large.
+- Uses "rect-triangles" instead of "super-triangles" for stability. This can prevent some points from being excluded when the min and max rect is large.
 
 ## [0.3.0]
 
