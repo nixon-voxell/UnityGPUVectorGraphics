@@ -13,6 +13,12 @@ namespace Voxell.GPUVectorGraphics
       ref NativeList<Cirumcircle> na_cirumcircles
     )
     {
+      //       __       .       /\      
+      //      |__|      .      /__\     
+      //       __       .     / __ \    
+      //      |__|      .    / |__| \   
+      //  __   __   __  .  _/   __   \_ 
+      // |__| |__| |__| . |/_| |__| |_\|
       int pointCount = na_points.Length;
       float width = maxRect.x - minRect.x;
       float height = maxRect.y - minRect.y;
