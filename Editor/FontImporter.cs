@@ -73,7 +73,7 @@ namespace Voxell.GPUVectorGraphics.Font
         _tableMap.Add(table.tag, table);
       }
 
-      /// head will tell us all table offset information
+      // head will tell us all table offset information
       ////////////////////////////////////////////////////////////////////////////////
       #region Head
       if (!_tableMap.TryGetValue(Head.TagName, out table))
@@ -89,7 +89,7 @@ namespace Voxell.GPUVectorGraphics.Font
       offsetByteWidth = head.OffsetByteWidth;
       #endregion
 
-      /// maxp will tell us how many glyphs there are in the file
+      // maxp will tell us how many glyphs there are in the file
       ////////////////////////////////////////////////////////////////////////////////
       #region Maxp
       if (!_tableMap.TryGetValue(Maxp.TagName, out table))
@@ -104,7 +104,7 @@ namespace Voxell.GPUVectorGraphics.Font
       glyphCount = maxP.numGlyphs;
       #endregion
 
-      /// loca knows offsets of glyphs in the glyf table
+      // loca knows offsets of glyphs in the glyf table
       ////////////////////////////////////////////////////////////////////////////////
       #region Loca
       if (!_tableMap.TryGetValue(Loca.TagName, out table))
@@ -118,7 +118,7 @@ namespace Voxell.GPUVectorGraphics.Font
       loca.Read(fontReader, glyphCount, offsetByteWidth == 4);
       #endregion
 
-      /// glyf provides contour data
+      // glyf provides contour data
       ////////////////////////////////////////////////////////////////////////////////
       #region Glyf
       if (!_tableMap.TryGetValue(Glyf.TagName, out table))
@@ -234,8 +234,8 @@ namespace Voxell.GPUVectorGraphics.Font
       }
       #endregion
 
-      /// cmap tells us the mapping between
-      /// character codes and glyph indices used throughout the font file
+      // cmap tells us the mapping between
+      // character codes and glyph indices used throughout the font file
       ////////////////////////////////////////////////////////////////////////////////
       #region cmap
       if (!_tableMap.TryGetValue(CMap.TagName, out table))
@@ -284,7 +284,7 @@ namespace Voxell.GPUVectorGraphics.Font
       FontCurve fontCurve = ScriptableObject.CreateInstance<FontCurve>();
       ctx.AddObjectToAsset("FontCurve", fontCurve);
 
-      /// create mesh for each char
+      // create mesh for each char
       ////////////////////////////////////////////////////////////////////////////////
       int keyCount = charCodes.Length;
       Mesh[] meshes = new Mesh[keyCount];

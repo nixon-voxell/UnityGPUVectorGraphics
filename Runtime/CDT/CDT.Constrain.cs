@@ -131,8 +131,7 @@ namespace Voxell.GPUVectorGraphics
           }
         }
 
-        // return;
-        /// remove triangles connected to a contour edge and is outside the contour
+        // remove triangles connected to a contour edge and is outside the contour
         ////////////////////////////////////////////////////////////////////////////////
         NativeMultiHashMap<int, int> na_pointTriMap = new NativeMultiHashMap<int, int>(
           na_points.Length, Allocator.Temp
@@ -186,8 +185,8 @@ namespace Voxell.GPUVectorGraphics
           }
         }
 
-        /// remove triangles that are not connected to
-        /// any contour edge and is outside the contour
+        // remove triangles that are not connected to
+        // any contour edge and is outside the contour
         ////////////////////////////////////////////////////////////////////////////////
         NativeArray<Edge> na_contourEdges = new NativeArray<Edge>(na_contours.Length, Allocator.Temp);
 
