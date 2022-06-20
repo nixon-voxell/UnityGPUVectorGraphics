@@ -54,7 +54,7 @@
    ----------------------------------
    ```
   6. And now you get a "super-triangle" that encapsulates all the points in the middle box! (of course, you can add some kind of margin to the box itself to enlarge the "super-triangle" just to make sure!)
-- Added "preview" to package version.
+- Added "alpha" to package version.
 
 ### Bug Fixes
 
