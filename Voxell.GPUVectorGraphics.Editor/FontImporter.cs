@@ -75,7 +75,6 @@ namespace Voxell.GPUVectorGraphics.Font
 
             // head will tell us all table offset information
             ////////////////////////////////////////////////////////////////////////////////
-            #region Head
             if (!_tableMap.TryGetValue(Head.TagName, out table))
             {
                 Debug.LogError("Font file does not have a header!");
@@ -87,11 +86,9 @@ namespace Voxell.GPUVectorGraphics.Font
             head.Read(fontReader);
             unitsPerEm = (float)head.unitsPerEm;
             offsetByteWidth = head.OffsetByteWidth;
-            #endregion
 
             // maxp will tell us how many glyphs there are in the file
             ////////////////////////////////////////////////////////////////////////////////
-            #region Maxp
             if (!_tableMap.TryGetValue(Maxp.TagName, out table))
             {
                 Debug.LogError("Font file does not have maxp data!");
@@ -102,11 +99,9 @@ namespace Voxell.GPUVectorGraphics.Font
             Maxp maxP = new Maxp();
             maxP.Read(fontReader);
             glyphCount = maxP.numGlyphs;
-            #endregion
 
             // loca knows offsets of glyphs in the glyf table
             ////////////////////////////////////////////////////////////////////////////////
-            #region Loca
             if (!_tableMap.TryGetValue(Loca.TagName, out table))
             {
                 Debug.LogError("Font file does not have loca data!");
@@ -116,11 +111,9 @@ namespace Voxell.GPUVectorGraphics.Font
             fontReader.SetPosition(table.offset);
             Loca loca = new Loca();
             loca.Read(fontReader, glyphCount, offsetByteWidth == 4);
-            #endregion
 
             // glyf provides contour data
             ////////////////////////////////////////////////////////////////////////////////
-            #region Glyf
             if (!_tableMap.TryGetValue(Glyf.TagName, out table))
             {
                 Debug.LogError("Font file does not have glyf data!");
@@ -234,12 +227,10 @@ namespace Voxell.GPUVectorGraphics.Font
                     glyphs[g].isComplex = false;
                 }
             }
-            #endregion
 
             // cmap tells us the mapping between
             // character codes and glyph indices used throughout the font file
             ////////////////////////////////////////////////////////////////////////////////
-            #region cmap
             if (!_tableMap.TryGetValue(CMap.TagName, out table))
             {
                 Debug.LogError("Font file does not have cmap data!");
@@ -278,7 +269,6 @@ namespace Voxell.GPUVectorGraphics.Font
 
             System.Array.Sort(charCodes, glyphIndices);
             // sort character codes
-            #endregion
 
             _tableMap.Clear();
             fontReader.Close();
