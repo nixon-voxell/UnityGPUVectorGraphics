@@ -1,6 +1,6 @@
 {
   "name": "voxell.vectorgraphics",
-  "displayName": "GPU Vector Graphics",
+  "displayName": "@GPU Vector Graphics",
   "author": "@Voxell",
   "description": "Generating vector graphics using the power of GPU.",
   "keywords": [
@@ -15,9 +15,9 @@
   "dependencies": {
     "voxell.util": "0.1.0",
     "com.unity.mathematics": "1.2.6",
-    "com.unity.collections": "1.2.3",
+    "com.unity.collections": "2.1.4",
     "com.unity.jobs": "0.70.0-preview.7",
-    "com.unity.burst": "1.6.5"
+    "com.unity.burst": "1.8.4"
   },
   "hideInEditor": false
 }
