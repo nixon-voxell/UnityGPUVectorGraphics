@@ -1,0 +1,21 @@
+{
+    "name": "Voxell.GPUVectorGraphics.Font",
+    "rootNamespace": "Voxell.GPUVectorGraphics.Font",
+    "references": [
+        "GUID:da829e25e5d77364984881df942d9735",
+        "GUID:5d380aad12070eb419c6e27b68ec6534",
+        "GUID:d8b63aba1907145bea998dd612889d6b",
+        "GUID:e0cd26848372d4e5c891c569017e11f1",
+        "GUID:8a2eafa29b15f444eb6d74f94a930e1d",
+        "GUID:2665a8d13d1b3f18800f46e256720795"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
