@@ -4,18 +4,16 @@ using Unity.Burst;
 namespace Voxell.GPUVectorGraphics.ECS
 {
     [UpdateInGroup(typeof(InitializationSystemGroup))]
-    public partial struct VectorGraphicsInitSystem : ISystem
+    public partial class VectorGraphicsInitSystem : SystemBase
     {
-        [BurstCompile]
-        private void OnCreate()
+        protected override void OnCreate()
         {
-            
+            VectorGraphicsWorld.Initialize();
         }
 
-        [BurstCompile]
-        private void OnDestroy()
+        protected override void OnUpdate()
         {
-            
+            VectorGraphicsWorld.Dispose();
         }
     }
 }

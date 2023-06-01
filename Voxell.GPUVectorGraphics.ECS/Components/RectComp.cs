@@ -7,6 +7,8 @@ namespace Voxell.GPUVectorGraphics.ECS
     public struct RectComp : IComponentData
     {
         public float2 Size;
+        public float Radius;
+        public float4 Tint;
     }
 
     public static partial class VectorGraphics
@@ -17,11 +19,7 @@ namespace Voxell.GPUVectorGraphics.ECS
             {
                 return state.EntityManager.CreateArchetype(
                     typeof(LocalTransform),
-                    typeof(RectComp),
-                    typeof(StyleComps.TintComp),
-                    typeof(StyleComps.BorderComp)
-                    // typeof(StyleComps.Stroke),
-                    // typeof(StyleComps.StrokeTint),
+                    typeof(RectComp)
                 );
             }
 

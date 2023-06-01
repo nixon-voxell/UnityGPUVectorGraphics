@@ -1,32 +1,56 @@
 using UnityEngine;
-using UnityEngine.Rendering;
-using Unity.Collections;
-using Unity.Burst;
 using Unity.Entities;
 using Unity.Transforms;
 
 namespace Voxell.GPUVectorGraphics.ECS
 {
+    using static VectorGraphicsWorld;
     [UpdateInGroup(typeof(PresentationSystemGroup))]
-    public partial struct RectRendererSystem : ISystem
+    public partial class RectRendererSystem : SystemBase, System.IDisposable
     {
-        // private Mesh m_Quad;
+        private Material m_mat_RectUnlit;
 
-        private void OnCreate(ref SystemState state)
+        protected override void OnCreate()
         {
-            state.RequireForUpdate<RectComp>();
-            // this.m_Quad = 
+            // state.RequireForUpdate<RectComp>();
+            // this.m_na_Matrices = new NativeList<float4x4>(1024, Allocator.Persistent);
         }
 
-        [BurstCompile]
-        private void OnUpdate(ref SystemState state)
+        protected override void OnStartRunning()
+        {
+            this.m_mat_RectUnlit = MaterialMap["RectUnlit"];
+        }
+
+        protected override void OnUpdate()
         {
             foreach (
                 var (transform, rect) in
                 SystemAPI.Query<RefRO<LocalTransform>, RefRO<RectComp>>()
             ) {
-                // Graphics.RenderMesh();
+                RenderParams renderParams = new RenderParams(this.m_mat_RectUnlit);
+
+                Debug.Log(renderParams.matProps);
+
+                MaterialPropertyBlock propertyBlock = new MaterialPropertyBlock();
+                propertyBlock.SetVector(ShaderID._Size, new Vector4(rect.ValueRO.Size.x, rect.ValueRO.Size.y, 0.0f, 0.0f));
+                propertyBlock.SetFloat(ShaderID._Radius, rect.ValueRO.Radius);
+                propertyBlock.SetVector(ShaderID._Tint, rect.ValueRO.Tint);
+
+                renderParams.matProps = propertyBlock;
+
+                Graphics.RenderMesh(in renderParams, Primitive.Quad, 0, transform.ValueRO.ToMatrix());
             }
+        }
+
+        public void OnStopRunning(ref SystemState state) {}
+
+        protected override void OnDestroy()
+        {
+            this.Dispose();
+        }
+
+        public void Dispose()
+        {
         }
     }
 }
