@@ -11,12 +11,11 @@ namespace Voxell.GPUVectorGraphics.ECS
 
         public RectComp Default()
         {
-            return new RectComp
-            {
-                Size = 1.0f,
-                Radius = 0.05f,
-                Tint = 1.0f,
-            };
+            this.Size = 1.0f;
+            this.Radius = 0.05f;
+            this.Tint = 1.0f;
+
+            return this;
         }
     }
 }

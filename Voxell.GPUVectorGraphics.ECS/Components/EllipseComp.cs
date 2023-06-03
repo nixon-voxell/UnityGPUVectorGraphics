@@ -10,11 +10,10 @@ namespace Voxell.GPUVectorGraphics.ECS
 
         public EllipseComp Default()
         {
-            return new EllipseComp
-            {
-                Size = 1.0f,
-                Tint = 1.0f,
-            };
+            this.Size = 1.0f;
+            this.Tint = 1.0f;
+
+            return this;
         }
     }
 }
