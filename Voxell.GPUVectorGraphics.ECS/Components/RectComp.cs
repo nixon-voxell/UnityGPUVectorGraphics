@@ -1,33 +1,22 @@
 using Unity.Mathematics;
 using Unity.Entities;
-using Unity.Transforms;
 
 namespace Voxell.GPUVectorGraphics.ECS
 {
-    public struct RectComp : IComponentData
+    public struct RectComp : IComponentData, IDefault<RectComp>
     {
         public float2 Size;
         public float Radius;
         public float4 Tint;
-    }
 
-    public static partial class VectorGraphics
-    {
-        public static class Rect
+        public RectComp Default()
         {
-            public static EntityArchetype GetDefaultArchetype(ref SystemState state)
+            return new RectComp
             {
-                return state.EntityManager.CreateArchetype(
-                    typeof(LocalTransform),
-                    typeof(RectComp)
-                );
-            }
-
-            public static Entity Create(ref SystemState state)
-            {
-                return state.EntityManager.CreateEntity(GetDefaultArchetype(ref state));
-            }
+                Size = 1.0f,
+                Radius = 0.05f,
+                Tint = 1.0f,
+            };
         }
     }
-
 }

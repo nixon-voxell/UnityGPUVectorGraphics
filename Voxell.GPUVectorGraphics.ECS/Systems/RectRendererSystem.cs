@@ -12,8 +12,7 @@ namespace Voxell.GPUVectorGraphics.ECS
 
         protected override void OnCreate()
         {
-            // state.RequireForUpdate<RectComp>();
-            // this.m_na_Matrices = new NativeList<float4x4>(1024, Allocator.Persistent);
+            this.RequireForUpdate<RectComp>();
         }
 
         protected override void OnStartRunning()
@@ -28,8 +27,6 @@ namespace Voxell.GPUVectorGraphics.ECS
                 SystemAPI.Query<RefRO<LocalTransform>, RefRO<RectComp>>()
             ) {
                 RenderParams renderParams = new RenderParams(this.m_mat_RectUnlit);
-
-                Debug.Log(renderParams.matProps);
 
                 MaterialPropertyBlock propertyBlock = new MaterialPropertyBlock();
                 propertyBlock.SetVector(ShaderID._Size, new Vector4(rect.ValueRO.Size.x, rect.ValueRO.Size.y, 0.0f, 0.0f));

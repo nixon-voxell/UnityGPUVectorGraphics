@@ -1,5 +1,4 @@
 using Unity.Entities;
-using Unity.Burst;
 
 namespace Voxell.GPUVectorGraphics.ECS
 {
@@ -11,7 +10,9 @@ namespace Voxell.GPUVectorGraphics.ECS
             VectorGraphicsWorld.Initialize();
         }
 
-        protected override void OnUpdate()
+        protected override void OnUpdate() {}
+
+        protected override void OnDestroy()
         {
             VectorGraphicsWorld.Dispose();
         }
