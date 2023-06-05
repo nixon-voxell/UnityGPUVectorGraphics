@@ -47,7 +47,7 @@ Material:
     - _DstBlend: 10
     - _QueueControl: 0
     - _QueueOffset: 0
-    - _Radius: 0.05
+    - _Radius: 0
     - _SrcBlend: 5
     - _Surface: 1
     - _ZTest: 4
