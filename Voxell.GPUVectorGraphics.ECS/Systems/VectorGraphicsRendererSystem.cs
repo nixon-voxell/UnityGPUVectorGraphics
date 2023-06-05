@@ -12,6 +12,7 @@ namespace Voxell.GPUVectorGraphics.ECS
             EntityManager manager = this.EntityManager;
             RenderCompCaches.Add(CreateCache<RectComp>(ref manager, MaterialMap["RectUnlit"], Primitive.Quad));
             RenderCompCaches.Add(CreateCache<EllipseComp>(ref manager, MaterialMap["EllipseUnlit"], Primitive.Quad));
+            RenderCompCaches.Add(CreateCache<PolygonComp>(ref manager, MaterialMap["PolygonUnlit"], Primitive.Quad));
         }
 
         protected override void OnUpdate()
