@@ -1,9 +1,9 @@
 using Unity.Mathematics;
-using Unity.Entities;
+using UnityEngine;
 
 namespace Voxell.GPUVectorGraphics.ECS
 {
-    public struct EllipseComp : IComponentData, IDefault<EllipseComp>
+    public struct EllipseComp : IRenderComp, IDefault<EllipseComp>
     {
         public float2 Size;
         public float4 Tint;
@@ -14,6 +14,12 @@ namespace Voxell.GPUVectorGraphics.ECS
             this.Tint = 1.0f;
 
             return this;
+        }
+
+        public void SetPropertyBlock(MaterialPropertyBlock propertyBlock)
+        {
+            propertyBlock.SetVector(ShaderID._Size, new Vector4(this.Size.x, this.Size.y, 0.0f, 0.0f));
+            propertyBlock.SetVector(ShaderID._Tint, this.Tint);
         }
     }
 }

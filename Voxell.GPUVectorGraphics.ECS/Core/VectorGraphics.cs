@@ -5,17 +5,17 @@ namespace Voxell.GPUVectorGraphics.ECS
 {
     public static partial class VectorGraphics
     {
-        public static T Default<T>()
-        where T : unmanaged, IComponentData, IDefault<T>
+        public static Comp Default<Comp>()
+        where Comp : unmanaged, IComponentData, IDefault<Comp>
         {
-            return new T().Default();
+            return new Comp().Default();
         }
 
-        public static Entity DefaultEntity<T>(ref EntityManager manager)
-        where T : unmanaged, IComponentData, IDefault<T>
+        public static Entity DefaultEntity<Comp>(ref EntityManager manager)
+        where Comp : unmanaged, IComponentData, IDefault<Comp>
         {
             Entity entity = TransEntity(ref manager);
-            manager.AddComponentData<T>(entity, Default<T>());
+            manager.AddComponentData<Comp>(entity, Default<Comp>());
 
             return entity;
         }
