@@ -3,14 +3,18 @@ using UnityEngine;
 
 namespace Voxell.GPUVectorGraphics.ECS
 {
-    public static class VectorGraphicsWorld
+    using static VectorGraphicsRenderer;
+
+    internal static class VectorGraphicsWorld
     {
         public static Dictionary<string, Material> MaterialMap;
+        public static List<RenderCompCache> RenderCompCaches;
         public static PrimitiveMesh Primitive;
 
         public static void Initialize()
         {
-            MaterialMap = new Dictionary<string, Material>(1024);
+            MaterialMap = new Dictionary<string, Material>(128);
+            RenderCompCaches = new List<RenderCompCache>(128);
 
             Material[] materials = Resources.LoadAll<Material>("GPUVectorGraphics/Materials");
 
@@ -25,6 +29,14 @@ namespace Voxell.GPUVectorGraphics.ECS
         public static void Dispose()
         {
             MaterialMap.Clear();
+
+            for (int c = 0, count = RenderCompCaches.Count; c < count; c++)
+            {
+                RenderCompCache cache = RenderCompCaches[c];
+                cache.Dispose();
+            }
+
+            RenderCompCaches.Clear();
         }
     }
 
