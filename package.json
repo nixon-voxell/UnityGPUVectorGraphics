@@ -16,7 +16,6 @@
     "voxell.util": "0.1.0",
     "com.unity.mathematics": "1.2.6",
     "com.unity.collections": "2.1.4",
-    "com.unity.jobs": "0.70.0-preview.7",
     "com.unity.burst": "1.8.4"
   },
   "hideInEditor": false
