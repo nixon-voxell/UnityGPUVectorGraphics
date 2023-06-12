@@ -1,20 +1,24 @@
+using System.Runtime.CompilerServices;
 using UnityEngine;
 using Unity.Collections;
 using Unity.Jobs;
 using Unity.Entities;
 using Unity.Transforms;
 
-namespace Voxell.GPUVectorGraphics.ECS
+namespace Voxell.GPUVectorGraphics
 {
     public static class VectorGraphicsRenderer
     {
+        public delegate void RenderDelegate(ref RenderCompCache renderData);
+
+        /// <summary>Cache of required data for rendering a IRenderComp.</summary>
         public struct RenderCompCache : System.IDisposable
         {
             public EntityQuery Query;
             public Material Material;
             public Mesh Mesh;
 
-            public VectorGraphicsRenderer.RenderDelegate RenderDelegate;
+            public RenderDelegate RenderDelegate;
 
             public void Dispose()
             {
@@ -22,6 +26,8 @@ namespace Voxell.GPUVectorGraphics.ECS
             }
         }
 
+        /// <summary>Create an EntityQuery for a given IRenderComp.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static EntityQuery CreateQuery<Comp>(ref EntityManager manager)
         where Comp : unmanaged, IRenderComp
         {
@@ -30,8 +36,6 @@ namespace Voxell.GPUVectorGraphics.ECS
                 ComponentType.ReadOnly<Comp>()
             );
         }
-
-        public delegate void RenderDelegate(ref RenderCompCache renderData);
 
         public static void Render<Comp>(ref RenderCompCache renderData)
         where Comp : unmanaged, IRenderComp
@@ -64,6 +68,8 @@ namespace Voxell.GPUVectorGraphics.ECS
             na_comps.Dispose();
         }
 
+        /// <summary>Create a RenderCompCache for a given IRenderComp and its associated data.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static RenderCompCache CreateCache<Comp>(ref EntityManager manager, Material material, Mesh mesh)
         where Comp : unmanaged, IRenderComp
         {

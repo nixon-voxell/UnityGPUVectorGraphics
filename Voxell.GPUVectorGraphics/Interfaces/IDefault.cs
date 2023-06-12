@@ -1,4 +1,4 @@
-namespace Voxell.GPUVectorGraphics.ECS
+namespace Voxell.GPUVectorGraphics
 {
     public interface IDefault<T>
     where T : unmanaged

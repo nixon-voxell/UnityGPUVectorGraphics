@@ -1,13 +1,14 @@
 using Unity.Entities;
 
-namespace Voxell.GPUVectorGraphics.ECS
+namespace Voxell.GPUVectorGraphics
 {
-    using static VectorGraphicsRenderer;
     using static VectorGraphicsWorld;
+    using static VectorGraphicsRenderer;
 
+    [UpdateInGroup(typeof(SimulationSystemGroup))]
     public partial class VectorGraphicsRendererSystem : SystemBase, System.IDisposable
     {
-        protected override void OnCreate()
+        protected override void OnStartRunning()
         {
             EntityManager manager = this.EntityManager;
             RenderCompCaches.Add(CreateCache<RectComp>(ref manager, MaterialMap["RectUnlit"], Primitive.Quad));

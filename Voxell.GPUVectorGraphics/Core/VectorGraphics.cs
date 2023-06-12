@@ -1,7 +1,7 @@
 using Unity.Entities;
 using Unity.Transforms;
 
-namespace Voxell.GPUVectorGraphics.ECS
+namespace Voxell.GPUVectorGraphics
 {
     public static partial class VectorGraphics
     {

@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace Voxell.GPUVectorGraphics.ECS
+namespace Voxell.GPUVectorGraphics
 {
     public static class ShaderID
     {

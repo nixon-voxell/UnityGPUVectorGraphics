@@ -1,6 +1,6 @@
 using Unity.Entities;
 
-namespace Voxell.GPUVectorGraphics.ECS
+namespace Voxell.GPUVectorGraphics
 {
     [UpdateInGroup(typeof(InitializationSystemGroup))]
     public partial class VectorGraphicsInitSystem : SystemBase
