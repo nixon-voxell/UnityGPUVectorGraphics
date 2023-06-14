@@ -3,6 +3,8 @@ using UnityEngine;
 
 namespace Voxell.GPUVectorGraphics
 {
+    using Util.Interface;
+
     public struct EllipseComp : IRenderComp, IDefault<EllipseComp>
     {
         public float2 Size;

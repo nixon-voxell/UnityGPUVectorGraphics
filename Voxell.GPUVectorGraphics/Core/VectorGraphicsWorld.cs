@@ -5,6 +5,7 @@ namespace Voxell.GPUVectorGraphics
 {
     using static VectorGraphicsRenderer;
 
+    // TODO: refer https://github.com/google/forma
     internal static class VectorGraphicsWorld
     {
         public static Dictionary<string, Material> MaterialMap;

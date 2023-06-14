@@ -3,6 +3,8 @@ using UnityEngine;
 
 namespace Voxell.GPUVectorGraphics
 {
+    using Util.Interface;
+
     public struct PolygonComp : IRenderComp, IDefault<PolygonComp>
     {
         public float2 Size;

@@ -3,6 +3,8 @@ using Unity.Transforms;
 
 namespace Voxell.GPUVectorGraphics
 {
+    using Util.Interface;
+
     public static partial class VectorGraphics
     {
         public static Comp Default<Comp>()

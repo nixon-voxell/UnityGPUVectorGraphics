@@ -3,6 +3,8 @@ using UnityEngine;
 
 namespace Voxell.GPUVectorGraphics
 {
+    using Util.Interface;
+
     public struct RectComp : IRenderComp, IDefault<RectComp>
     {
         public float2 Size;
