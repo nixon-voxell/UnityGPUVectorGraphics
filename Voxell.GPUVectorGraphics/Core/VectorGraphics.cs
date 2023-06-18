@@ -16,21 +16,39 @@ namespace Voxell.GPUVectorGraphics
         public static Entity DefaultEntity<Comp>(ref EntityManager manager)
         where Comp : unmanaged, IComponentData, IDefault<Comp>
         {
-            Entity entity = TransEntity(ref manager);
+            Entity entity = TransformEntity(ref manager);
             manager.AddComponentData<Comp>(entity, Default<Comp>());
 
             return entity;
         }
 
-        public static Entity TransEntity(ref EntityManager manager)
+        public static Entity DefaultEntity<Comp>(ref EntityManager manager, Entity parent)
+        where Comp : unmanaged, IComponentData, IDefault<Comp>
         {
-            return TransEntity(ref manager, LocalTransform.Identity);
+            Entity entity = TransformEntity(ref manager, parent);
+            manager.AddComponentData<Comp>(entity, Default<Comp>());
+
+            return entity;
         }
 
-        public static Entity TransEntity(ref EntityManager manager, LocalTransform localTransform)
+        public static Entity TransformEntity(ref EntityManager manager)
+        {
+            return TransformEntity(ref manager, LocalTransform.Identity);
+        }
+
+        public static Entity TransformEntity(ref EntityManager manager, Entity parent)
+        {
+            Entity entity = TransformEntity(ref manager, LocalTransform.Identity);
+            manager.AddComponentData<Parent>(entity, new Parent { Value = parent });
+
+            return entity;
+        }
+
+        public static Entity TransformEntity(ref EntityManager manager, LocalTransform localTransform)
         {
             Entity entity = manager.CreateEntity();
             manager.AddComponentData<LocalTransform>(entity, localTransform);
+            manager.AddComponent<LocalToWorld>(entity);
 
             return entity;
         }
